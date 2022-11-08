@@ -40,7 +40,7 @@ const reducer = (state, action) => {
       return state;
   }
 };
-export default function ProductEditScreen() {
+export default function ValueEditScreen() {
   const navigate = useNavigate();
   const params = useParams(); // /valuee/:id
   const { id: valueeId } = params;

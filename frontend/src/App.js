@@ -39,6 +39,7 @@ import ValueeListScreen from './screens/ValueeListScreen';
 import ValueeEditScreen from './screens/ValueeEditScreen';
 import ConfigurationListScreen from './screens/ConfigurationListScreen';
 import ConfigurationEditScreen from './screens/ConfigurationEditScreen';
+import Invoices from './invoice/src/Invoices';
 import MapScreen from './screens/MapScreen';
 
 function App() {
@@ -149,6 +150,9 @@ function App() {
                       </LinkContainer>
                       <LinkContainer to="/admin/configurations">
                         <NavDropdown.Item>Configurations</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoices">
+                        <NavDropdown.Item>Invoices</NavDropdown.Item>
                       </LinkContainer>
                     </NavDropdown>
                   )}
@@ -288,6 +292,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <ConfigurationListScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoices"
+                element={
+                  <AdminRoute>
+                    <Invoices />
                   </AdminRoute>
                 }
               ></Route>
