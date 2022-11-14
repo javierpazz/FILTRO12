@@ -129,17 +129,7 @@ button.thumbnail {
 .input {
   box-sizing: border-box;
   display: block;
-  width: 100%;
-  font-size: 7pt;
-  padding: 5px;
-}
-
-.bordeTable {
-  box-sizing: border-box;
-  border: 1px solid #0e0d0d;
-  margin: 0.5rem auto;
-  display: block;
-  width: 100%;
+  width: 70%;
   font-size: 7pt;
   padding: 5px;
 }

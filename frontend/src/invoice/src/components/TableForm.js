@@ -1,12 +1,33 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useReducer } from 'react';
+import axios from 'axios';
 import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import { v4 as uuidv4 } from 'uuid';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Store } from '../../../Store';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'FETCH_REQUEST':
+      return { ...state, loading: true };
+    case 'FETCH_SUCCESS':
+      return {
+        ...state,
+        products: action.payload.products,
+        page: action.payload.page,
+        pages: action.payload.pages,
+        loading: false,
+      };
+    case 'FETCH_FAIL':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
 
 export default function TableForm({
   codPro,
@@ -24,13 +45,32 @@ export default function TableForm({
   total,
   setTotal,
 }) {
+  const [
+    {
+      loading,
+      error,
+      products,
+      pages,
+      loadingCreate,
+      loadingDelete,
+      successDelete,
+    },
+    dispatch,
+  ] = useReducer(reducer, {
+    loading: true,
+    error: '',
+  });
+
   const [isEditing, setIsEditing] = useState(false);
+  const { state } = useContext(Store);
+  const { userInfo } = state;
+  const [productss, setProductss] = useState([]);
 
   // Submit form function
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!codPro || !desPro || !quantity || !price) {
+    if (!codPro || !quantity || !price) {
       toast.error('Please fill in all inputs');
     } else {
       const newItems = {
@@ -51,6 +91,19 @@ export default function TableForm({
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data } = await axios.get(`/api/products/`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setProductss(data);
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
+      } catch (err) {}
+    };
+    fetchData();
+  }, []);
+
   // Calculate items amount function
   useEffect(() => {
     const calculateAmount = (amount) => {
@@ -58,7 +111,7 @@ export default function TableForm({
     };
 
     calculateAmount(amount);
-  }, [amount, price, quantity, setAmount]);
+  }, [codPro, amount, price, quantity, setAmount]);
 
   // Calculate total amount of items in table
   useEffect(() => {
@@ -78,7 +131,8 @@ export default function TableForm({
     const editingRow = list.find((row) => row.id === id);
     setList(list.filter((row) => row.id !== id));
     setIsEditing(true);
-    setDesPro(editingRow.description);
+    setCodPro(editingRow.codPro);
+    setDesPro(editingRow.desPro);
     setQuantity(editingRow.quantity);
     setPrice(editingRow.price);
   };
@@ -86,122 +140,143 @@ export default function TableForm({
   // Delete function
   const deleteRow = (id) => setList(list.filter((row) => row.id !== id));
 
+  // Edit function
+
+  const searchProduct = (codPro) => {
+    const productRow = productss.find((row) => row._id === codPro);
+    setCodPro(productRow._id);
+    setDesPro(productRow.name);
+    setQuantity(1);
+    setPrice(productRow.price);
+  };
+
+  const handleChange = (e) => {
+    searchProduct(e.target.value);
+  };
+
   return (
     <>
       <ToastContainer position="top-right" theme="colored" />
 
-      <form onSubmit={handleSubmit}>
-        <Row>
-          <Col md={1}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>P. Code</Form.Label>
-                  <Form.Control
-                    placeholder="Product Code"
-                    value={codPro}
-                    onChange={(e) => setCodPro(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
+      <div className="bordeTable">
+        <form onSubmit={handleSubmit}>
+          <Row>
+            <Col md={2}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group className="input" controlId="name">
+                    <Form.Label>Product Code</Form.Label>
+                    <Form.Control
+                      className="input"
+                      placeholder="Product Code"
+                      value={codPro}
+                      onChange={(e) => setCodPro(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
 
-          <Col md={4}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Product Description</Form.Label>
-                  <Form.Control
-                    placeholder="Product Description"
-                    value={desPro}
-                    onChange={(e) => setDesPro(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-          <Col md={1}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Quantity</Form.Label>
-                  <Form.Control
-                    placeholder="Quantity"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-          <Col md={2}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Price</Form.Label>
-                  <Form.Control
-                    placeholder="Price"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-          <Col md={2}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="mb-3" controlId="name">
-                  <Form.Label>Amount</Form.Label>
-                  <p>{amount}</p>
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
+            <Col md={5}>
+              <Card.Body>
+                <Card.Title>
+                  <Card.Title>
+                    <Form.Group className="input" controlId="name">
+                      <Form.Label>Product Description</Form.Label>
+                      <Form.Select
+                        className="input"
+                        onClick={(e) => handleChange(e)}
+                      >
+                        {productss.map((elemento) => (
+                          <option key={elemento._id} value={elemento._id}>
+                            {elemento._id}+{elemento.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Card.Title>
+                </Card.Title>
+              </Card.Body>
+            </Col>
 
-          <Col md={2}>
-            <Card.Body>
-              <Card.Title>
-                <button type="submit">
-                  {isEditing ? 'Editing Row Item' : 'Add Table Item'}
-                </button>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-        </Row>
-      </form>
-      <Row>
-        <Col md={12}>
-          <Card.Body>
-            <Card.Title>
-              <h2>Total $.: {total.toLocaleString()}</h2>
-            </Card.Title>
-          </Card.Body>
-        </Col>
-      </Row>
+            <Col md={1}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group className="input" controlId="name">
+                    <Form.Label>Quantity</Form.Label>
+                    <Form.Control
+                      className="input"
+                      placeholder="Quantity"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
 
+            <Col md={1}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group className="input" controlId="name">
+                    <Form.Label>Price</Form.Label>
+                    <Form.Control
+                      className="input"
+                      placeholder="Price"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      required
+                    />
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
+
+            <Col md={1}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group className="input">
+                    <Form.Label>Amount</Form.Label>
+                    <p>{amount}</p>
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
+            <Col md={2}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group>
+                    <button type="submit">
+                      <AiOutlineEdit className="text-green-500 font-bold text-xl" />
+                      {isEditing ? 'Editing Row Item' : 'Add Table Item'}
+                    </button>
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
+          </Row>
+        </form>
+      </div>
       {/* Table items */}
 
       <table width="100%" className="mb-10">
         <thead>
           <tr className="bg-gray-100 p-1">
-            <td className="font-bold">Code</td>
-            <td className="font-bold">Description</td>
+            <td className="font-bold">Product Code</td>
+            <td className="font-bold">Product Description</td>
             <td className="font-bold">Quantity</td>
             <td className="font-bold">Price</td>
             <td className="font-bold">Amount</td>
           </tr>
         </thead>
-        {list.map(({ id, description, quantity, price, amount }) => (
+        {list.map(({ id, codPro, desPro, quantity, price, amount }) => (
           <React.Fragment key={id}>
             <tbody>
               <tr className="h-10">
-                <td>{description}</td>
+                <td>{codPro}</td>
+                <td>{desPro}</td>
                 <td>{quantity}</td>
                 <td>{price}</td>
                 <td className="amount">{amount}</td>
@@ -220,6 +295,12 @@ export default function TableForm({
           </React.Fragment>
         ))}
       </table>
+
+      <div>
+        <h2 className="flex items-end justify-end text-gray-800 text-4xl font-bold">
+          Total..: $ {total.toLocaleString()}
+        </h2>
+      </div>
     </>
   );
 }
