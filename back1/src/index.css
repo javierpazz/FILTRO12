@@ -143,14 +143,3 @@ button.thumbnail {
   font-size: 7pt;
   padding: 5px;
 }
-.bordeTableinput {
-  box-sizing: border-box;
-  border: 1px solid #0e0d0d;
-  margin: 0.5rem auto;
-  display: block;
-  width: 100%;
-  font-size: 7pt;
-  padding: 5px;
-  text-align: center;
-  align-items: center;
-}

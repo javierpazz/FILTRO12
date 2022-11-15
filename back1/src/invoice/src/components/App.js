@@ -303,40 +303,38 @@ function App() {
                 </Row>
               </div>
               <div className="bordeTable">
-                <div className="bordeTableinput">
-                  <Row>
-                    <Col md={4} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Print / Download</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
-                    </Col>
-                    <Col md={4} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Anular</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
-                    </Col>
-                    <Col md={4} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Procesar</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
-                    </Col>
-                  </Row>
-                </div>
+                <Row>
+                  <Col md={4}>
+                    <Card.Body>
+                      <Card.Title>
+                        <ReactToPrint
+                          trigger={() => <button>Print / Download</button>}
+                          content={() => componentRef.current}
+                        />
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                  <Col md={4}>
+                    <Card.Body>
+                      <Card.Title>
+                        <ReactToPrint
+                          trigger={() => <button>Anular</button>}
+                          content={() => componentRef.current}
+                        />
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                  <Col md={4}>
+                    <Card.Body>
+                      <Card.Title>
+                        <ReactToPrint
+                          trigger={() => <button>Procesar</button>}
+                          content={() => componentRef.current}
+                        />
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                </Row>
 
                 {/* This is our table form */}
                 <article>

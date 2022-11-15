@@ -65,38 +65,29 @@ export default function TableForm({
   const { state } = useContext(Store);
   const { userInfo } = state;
   const [productss, setProductss] = useState([]);
-  const [stock, setStock] = useState(0);
 
   // Submit form function
   const handleSubmit = (e) => {
     e.preventDefault();
-    const existeId = list.find((row) => row.codPro === codPro);
-    if (list.length <= 14) {
-      if (!existeId) {
-        if (!codPro || !quantity || !price) {
-          toast.error('Please fill in all inputs');
-        } else {
-          const newItems = {
-            id: uuidv4(),
-            codPro,
-            desPro,
-            quantity,
-            price,
-            amount,
-          };
-          setCodPro('');
-          setDesPro('');
-          setQuantity('');
-          setPrice('');
-          setAmount('');
-          setList([...list, newItems]);
-          setIsEditing(false);
-        }
-      } else {
-        toast.error('This Product was upload');
-      }
+
+    if (!codPro || !quantity || !price) {
+      toast.error('Please fill in all inputs');
     } else {
-      toast.error('This Invoice must have until 15 rows');
+      const newItems = {
+        id: uuidv4(),
+        codPro,
+        desPro,
+        quantity,
+        price,
+        amount,
+      };
+      setCodPro('');
+      setDesPro('');
+      setQuantity('');
+      setPrice('');
+      setAmount('');
+      setList([...list, newItems]);
+      setIsEditing(false);
     }
   };
 
@@ -157,15 +148,6 @@ export default function TableForm({
     setDesPro(productRow.name);
     setQuantity(1);
     setPrice(productRow.price);
-    setStock(productRow.countInStock);
-  };
-
-  const stockControl = (e) => {
-    if (e.target.value <= stock) {
-      setQuantity(e.target.value);
-    } else {
-      toast.error('This Product does not have stock enough');
-    }
   };
 
   const handleChange = (e) => {
@@ -208,8 +190,7 @@ export default function TableForm({
                       >
                         {productss.map((elemento) => (
                           <option key={elemento._id} value={elemento._id}>
-                            {elemento._id}+{elemento.name}+
-                            {elemento.countInStock}
+                            {elemento._id}+{elemento.name}
                           </option>
                         ))}
                       </Form.Select>
@@ -228,7 +209,7 @@ export default function TableForm({
                       className="input"
                       placeholder="Quantity"
                       value={quantity}
-                      onChange={(e) => stockControl(e)}
+                      onChange={(e) => setQuantity(e.target.value)}
                       required
                     />
                   </Form.Group>
