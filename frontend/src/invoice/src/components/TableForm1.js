@@ -4,11 +4,11 @@ import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import { v4 as uuidv4 } from 'uuid';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Store } from '../../../Store';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import { Store } from '../../../Store';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -61,16 +61,44 @@ export default function TableForm({
     error: '',
   });
 
-  const { state, dispatch: ctxDispatch } = useContext(Store);
-  const {
-    invoice: { invoiceItems },
-  } = state;
-
   const [isEditing, setIsEditing] = useState(false);
+  const { state } = useContext(Store);
   const { userInfo } = state;
   const [productss, setProductss] = useState([]);
-  const [productR, setProductR] = useState('');
   const [stock, setStock] = useState(0);
+
+  // Submit form function
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const existeId = list.find((row) => row.codPro === codPro);
+    if (list.length <= 14) {
+      if (!existeId) {
+        if (!codPro || !quantity || !price) {
+          toast.error('Please fill in all inputs');
+        } else {
+          const newItems = {
+            id: uuidv4(),
+            codPro,
+            desPro,
+            quantity,
+            price,
+            amount,
+          };
+          setCodPro('');
+          setDesPro('');
+          setQuantity('');
+          setPrice('');
+          setAmount('');
+          setList([...list, newItems]);
+          setIsEditing(false);
+        }
+      } else {
+        toast.error('This Product was upload');
+      }
+    } else {
+      toast.error('This Invoice must have until 15 rows');
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,29 +149,10 @@ export default function TableForm({
   // Delete function
   const deleteRow = (id) => setList(list.filter((row) => row.id !== id));
 
-  // Submit form function
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addToCartHandler();
-  };
-
-  const addToCartHandler = async (itemInv) => {
-    ctxDispatch({
-      type: 'INVOICE_ADD_ITEM',
-      payload: { ...itemInv, quantity },
-    });
-  };
-
-  const removeItemHandler = (itemInv) => {
-    ctxDispatch({ type: 'INVOICE_REMOVE_ITEM', payload: itemInv });
-    console.log(invoiceItems);
-  };
-
   // Edit function
 
   const searchProduct = (codPro) => {
     const productRow = productss.find((row) => row._id === codPro);
-    setProductR(productRow);
     setCodPro(productRow._id);
     setDesPro(productRow.name);
     setQuantity(1);
@@ -168,7 +177,7 @@ export default function TableForm({
       <ToastContainer position="top-right" theme="colored" />
 
       <div className="bordeTable">
-        <form>
+        <form onSubmit={handleSubmit}>
           <Row>
             <Col md={2}>
               <Card.Body>
@@ -200,7 +209,7 @@ export default function TableForm({
                         {productss.map((elemento) => (
                           <option key={elemento._id} value={elemento._id}>
                             {elemento._id}+{elemento.name}+
-                            {elemento.countInStock}+{elemento.price}
+                            {elemento.countInStock}
                           </option>
                         ))}
                       </Form.Select>
@@ -258,7 +267,7 @@ export default function TableForm({
               <Card.Body>
                 <Card.Title>
                   <Form.Group>
-                    <button onClick={() => addToCartHandler(productR)}>
+                    <button type="submit">
                       <AiOutlineEdit className="text-green-500 font-bold text-xl" />
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
                     </button>
@@ -281,17 +290,22 @@ export default function TableForm({
             <td className="font-bold">Amount</td>
           </tr>
         </thead>
-        {invoiceItems.map((itemInv) => (
-          <React.Fragment key={itemInv._id}>
+        {list.map(({ id, codPro, desPro, quantity, price, amount }) => (
+          <React.Fragment key={id}>
             <tbody>
               <tr className="h-10">
-                <td>{itemInv._id}</td>
-                <td>{itemInv.name}</td>
-                <td>{itemInv.quantity}</td>
-                <td>{itemInv.price}</td>
+                <td>{codPro}</td>
+                <td>{desPro}</td>
+                <td>{quantity}</td>
+                <td>{price}</td>
                 <td className="amount">{amount}</td>
                 <td>
-                  <button onClick={() => removeItemHandler(itemInv)}>
+                  <button onClick={() => editRow(id)}>
+                    <AiOutlineEdit className="text-green-500 font-bold text-xl" />
+                  </button>
+                </td>
+                <td>
+                  <button onClick={() => deleteRow(id)}>
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                   </button>
                 </td>

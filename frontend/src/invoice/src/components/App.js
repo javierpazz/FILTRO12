@@ -1,4 +1,5 @@
 import { useContext, useState, useRef, useEffect, useReducer } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ClientDetails from './ClientDetails';
 import Dates from './Dates';
@@ -7,6 +8,7 @@ import Header from './Header';
 import MainDetails from './MainDetails';
 import Notes from './Notes';
 import Table from './Table';
+import { toast } from 'react-toastify';
 import TableForm from './TableForm';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
@@ -14,6 +16,9 @@ import Col from 'react-bootstrap/Col';
 import { Store } from '../../../Store';
 import ReactToPrint from 'react-to-print';
 import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import LoadingBox from '../../../components/LoadingBox';
+import { getError } from '../../../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -51,7 +56,13 @@ function App() {
     error: '',
   });
 
-  const { state } = useContext(Store);
+  const navigate = useNavigate();
+
+  const { state, dispatch: ctxDispatch } = useContext(Store);
+  const {
+    invoice: { invoiceItems },
+  } = state;
+
   const { userInfo } = state;
 
   const [codUse, setCodUse] = useState('');
@@ -117,6 +128,67 @@ function App() {
   const handleChange = (e) => {
     searchUser(e.target.value);
   };
+
+  const placeInvoiceHandler = async () => {
+    list.map((item) => stockHandler({ item }));
+
+    orderHandler();
+  };
+
+  /////////////////////////////////////////////
+
+  const stockHandler = async (item) => {
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      await axios.put(
+        `/api/products/downstock/${item.item._id}`,
+        {
+          quantitys: item.item.quantity,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      dispatch({ type: 'CREATE_SUCCESS' });
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
+    }
+  };
+
+  const orderHandler = async () => {
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      const { data } = await axios.post(
+        '/api/orders',
+        {
+          //          orderItems: cart.cartItems,
+          shippingAddress: '',
+          paymentMethod: '',
+          itemsPrice: '',
+          shippingPrice: '',
+          taxPrice: '',
+          //          totalPrice: cart.totalPrice,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      ctxDispatch({ type: 'CART_CLEAR' });
+      dispatch({ type: 'CREATE_SUCCESS' });
+      localStorage.removeItem('cartItems');
+      navigate(`/order/${data.order._id}`);
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
+    }
+  };
+
+  /////////////////////////////////////////////
 
   return (
     <>
@@ -325,15 +397,18 @@ function App() {
                         </Card.Title>
                       </Card.Body>
                     </Col>
+
                     <Col md={4} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Procesar</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
+                      <div className="d-grid">
+                        <Button
+                          type="button"
+                          onClick={placeInvoiceHandler}
+                          disabled={invoiceItems.length === 0}
+                        >
+                          Save Invoice
+                        </Button>
+                      </div>
+                      {loading && <LoadingBox></LoadingBox>}
                     </Col>
                   </Row>
                 </div>
@@ -388,7 +463,7 @@ function App() {
             quantity={quantity}
             price={price}
             amount={amount}
-            list={list}
+            invoiceItems={invoiceItems}
             setList={setList}
             total={total}
             setTotal={setTotal}

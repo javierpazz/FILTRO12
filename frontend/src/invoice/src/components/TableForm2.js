@@ -9,6 +9,7 @@ import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -34,8 +35,8 @@ export default function TableForm({
   setCodPro,
   desPro,
   setDesPro,
-  quantity,
-  setQuantity,
+  quantityInv,
+  setQuantityInv,
   price,
   setPrice,
   amount,
@@ -61,35 +62,16 @@ export default function TableForm({
     error: '',
   });
 
+  const { state, dispatch: ctxDispatch } = useContext(Store);
+  const {
+    invoice: { invoiceItems },
+  } = state;
+
   const [isEditing, setIsEditing] = useState(false);
-  const { state } = useContext(Store);
   const { userInfo } = state;
   const [productss, setProductss] = useState([]);
-
-  // Submit form function
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!codPro || !quantity || !price) {
-      toast.error('Please fill in all inputs');
-    } else {
-      const newItems = {
-        id: uuidv4(),
-        codPro,
-        desPro,
-        quantity,
-        price,
-        amount,
-      };
-      setCodPro('');
-      setDesPro('');
-      setQuantity('');
-      setPrice('');
-      setAmount('');
-      setList([...list, newItems]);
-      setIsEditing(false);
-    }
-  };
+  const [productR, setProductR] = useState('');
+  const [stock, setStock] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,11 +89,11 @@ export default function TableForm({
   // Calculate items amount function
   useEffect(() => {
     const calculateAmount = (amount) => {
-      setAmount(quantity * price);
+      setAmount(quantityInv * price);
     };
 
     calculateAmount(amount);
-  }, [codPro, amount, price, quantity, setAmount]);
+  }, [codPro, amount, price, quantityInv, setAmount]);
 
   // Calculate total amount of items in table
   useEffect(() => {
@@ -126,28 +108,33 @@ export default function TableForm({
     }
   });
 
-  // Edit function
-  const editRow = (id) => {
-    const editingRow = list.find((row) => row.id === id);
-    setList(list.filter((row) => row.id !== id));
-    setIsEditing(true);
-    setCodPro(editingRow.codPro);
-    setDesPro(editingRow.desPro);
-    setQuantity(editingRow.quantity);
-    setPrice(editingRow.price);
+  const addToCartHandler = async (itemInv) => {
+    ctxDispatch({
+      type: 'INVOICE_ADD_ITEM',
+      payload: { ...itemInv, quantityInv },
+    });
+    console.log(invoiceItems);
   };
 
-  // Delete function
-  const deleteRow = (id) => setList(list.filter((row) => row.id !== id));
+  const removeItemHandler = (itemInv) => {
+    ctxDispatch({ type: 'INVOICE_REMOVE_ITEM', payload: itemInv });
+  };
 
-  // Edit function
+  // Submit form function
 
   const searchProduct = (codPro) => {
-    const productRow = productss.find((row) => row._id === codPro);
-    setCodPro(productRow._id);
-    setDesPro(productRow.name);
-    setQuantity(1);
-    setPrice(productRow.price);
+    const productRow = productss.find((prod) => prod._id === codPro);
+    setProductR(productRow);
+    console.log(productRow.name);
+    console.log(productR.name);
+  };
+
+  const stockControl = (e) => {
+    if (e.target.value <= stock) {
+      setQuantityInv(e.target.value);
+    } else {
+      toast.error('This Product does not have stock enough');
+    }
   };
 
   const handleChange = (e) => {
@@ -159,7 +146,7 @@ export default function TableForm({
       <ToastContainer position="top-right" theme="colored" />
 
       <div className="bordeTable">
-        <form onSubmit={handleSubmit}>
+        <form>
           <Row>
             <Col md={2}>
               <Card.Body>
@@ -186,11 +173,12 @@ export default function TableForm({
                       <Form.Label>Product Description</Form.Label>
                       <Form.Select
                         className="input"
-                        onClick={(e) => handleChange(e)}
+                        onChange={(e) => handleChange(e)}
                       >
                         {productss.map((elemento) => (
                           <option key={elemento._id} value={elemento._id}>
-                            {elemento._id}+{elemento.name}
+                            {elemento._id}+{elemento.name}+
+                            {elemento.countInStock}
                           </option>
                         ))}
                       </Form.Select>
@@ -208,8 +196,8 @@ export default function TableForm({
                     <Form.Control
                       className="input"
                       placeholder="Quantity"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
+                      value={quantityInv}
+                      onChange={(e) => stockControl(e)}
                       required
                     />
                   </Form.Group>
@@ -248,10 +236,10 @@ export default function TableForm({
               <Card.Body>
                 <Card.Title>
                   <Form.Group>
-                    <button type="submit">
+                    <Button onClick={() => addToCartHandler(productR)}>
                       <AiOutlineEdit className="text-green-500 font-bold text-xl" />
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
-                    </button>
+                    </Button>
                   </Form.Group>
                 </Card.Title>
               </Card.Body>
@@ -271,22 +259,17 @@ export default function TableForm({
             <td className="font-bold">Amount</td>
           </tr>
         </thead>
-        {list.map(({ id, codPro, desPro, quantity, price, amount }) => (
-          <React.Fragment key={id}>
+
+        {invoiceItems.map((itemInv) => (
+          <React.Fragment key={itemInv._id}>
             <tbody>
               <tr className="h-10">
-                <td>{codPro}</td>
-                <td>{desPro}</td>
-                <td>{quantity}</td>
-                <td>{price}</td>
-                <td className="amount">{amount}</td>
+                <td>{itemInv._id}</td>
+                <td>{itemInv.name}</td>
+                <td>{itemInv.quantityInv}</td>
+                <td>{itemInv.price}</td>
                 <td>
-                  <button onClick={() => editRow(id)}>
-                    <AiOutlineEdit className="text-green-500 font-bold text-xl" />
-                  </button>
-                </td>
-                <td>
-                  <button onClick={() => deleteRow(id)}>
+                  <button onClick={() => removeItemHandler(itemInv)}>
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                   </button>
                 </td>
