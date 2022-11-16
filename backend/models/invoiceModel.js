@@ -11,17 +11,17 @@ const invoiceSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         product: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Invoice',
+          ref: 'Product',
           required: true,
         },
       },
     ],
     shippingAddress: {
-      fullName: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
+      fullName: { type: String },
+      address: { type: String },
+      city: { type: String },
+      postalCode: { type: String },
+      country: { type: String },
       location: {
         lat: Number,
         lng: Number,
@@ -53,5 +53,5 @@ const invoiceSchema = new mongoose.Schema(
   }
 );
 
-const Order = mongoose.model('Invoice', invoiceSchema);
+const Invoice = mongoose.model('Invoice', invoiceSchema);
 export default Invoice;

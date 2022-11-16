@@ -18,6 +18,7 @@ import SignupScreen from './screens/SignupScreen';
 import PaymentMethodScreen from './screens/PaymentMethodScreen';
 import PlaceOrderScreen from './screens/PlaceOrderScreen';
 import OrderScreen from './screens/OrderScreen';
+import InvoiceHistoryScreen from './screens/InvoiceHistoryScreen';
 import OrderHistoryScreen from './screens/OrderHistoryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import Button from 'react-bootstrap/Button';
@@ -30,6 +31,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import AdminRoute from './components/AdminRoute';
 import ProductListScreen from './screens/ProductListScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
+import InvoiceListScreen from './screens/InvoiceListScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import SupplierListScreen from './screens/SupplierListScreen';
 import SupplierEditScreen from './screens/SupplierEditScreen';
@@ -111,6 +113,9 @@ function App() {
                       <LinkContainer to="/profile">
                         <NavDropdown.Item>User Profile</NavDropdown.Item>
                       </LinkContainer>
+                      <LinkContainer to="/invoicehistory">
+                        <NavDropdown.Item>Inoice History</NavDropdown.Item>
+                      </LinkContainer>
                       <LinkContainer to="/orderhistory">
                         <NavDropdown.Item>Order History</NavDropdown.Item>
                       </LinkContainer>
@@ -135,6 +140,9 @@ function App() {
                       </LinkContainer>
                       <LinkContainer to="/admin/products">
                         <NavDropdown.Item>Products</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoices">
+                        <NavDropdown.Item>Invoicess</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/orders">
                         <NavDropdown.Item>Orders</NavDropdown.Item>
@@ -218,6 +226,14 @@ function App() {
                 }
               ></Route>
               <Route
+                path="/invoicehistory"
+                element={
+                  <ProtectedRoute>
+                    <InvoiceHistoryScreen />
+                  </ProtectedRoute>
+                }
+              ></Route>
+              <Route
                 path="/orderhistory"
                 element={
                   <ProtectedRoute>
@@ -236,6 +252,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <DashboardScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoices"
+                element={
+                  <AdminRoute>
+                    <InvoiceListScreen />
                   </AdminRoute>
                 }
               ></Route>

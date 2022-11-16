@@ -94,33 +94,6 @@ export default function TableForm({
     calculateAmount(amount);
   }, [codPro, amount, price, quantity, setAmount]);
 
-  // Calculate total amount of items in table
-  useEffect(() => {
-    let rows = document.querySelectorAll('.amount');
-    let sum = 0;
-
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].className === 'amount') {
-        sum += isNaN(rows[i].innerHTML) ? 0 : parseInt(rows[i].innerHTML);
-        setTotal(sum);
-      }
-    }
-  });
-
-  // Edit function
-  const editRow = (id) => {
-    const editingRow = list.find((row) => row.id === id);
-    setList(list.filter((row) => row.id !== id));
-    setIsEditing(true);
-    setCodPro(editingRow.codPro);
-    setDesPro(editingRow.desPro);
-    setQuantity(editingRow.quantity);
-    setPrice(editingRow.price);
-  };
-
-  // Delete function
-  const deleteRow = (id) => setList(list.filter((row) => row.id !== id));
-
   // Submit form function
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -128,15 +101,16 @@ export default function TableForm({
   };
 
   const addToCartHandler = async (itemInv) => {
-    ctxDispatch({
-      type: 'INVOICE_ADD_ITEM',
-      payload: { ...itemInv, quantity },
-    });
+    if (codPro && quantity > 0) {
+      ctxDispatch({
+        type: 'INVOICE_ADD_ITEM',
+        payload: { ...itemInv, quantity },
+      });
+    }
   };
 
   const removeItemHandler = (itemInv) => {
     ctxDispatch({ type: 'INVOICE_REMOVE_ITEM', payload: itemInv });
-    console.log(invoiceItems);
   };
 
   // Edit function
@@ -289,7 +263,7 @@ export default function TableForm({
                 <td>{itemInv.name}</td>
                 <td>{itemInv.quantity}</td>
                 <td>{itemInv.price}</td>
-                <td className="amount">{amount}</td>
+                <td className="amount">{itemInv.quantity * itemInv.price}</td>
                 <td>
                   <button onClick={() => removeItemHandler(itemInv)}>
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
@@ -300,12 +274,6 @@ export default function TableForm({
           </React.Fragment>
         ))}
       </table>
-
-      <div>
-        <h2 className="flex items-end justify-end text-gray-800 text-4xl font-bold">
-          Total..: $ {total.toLocaleString()}
-        </h2>
-      </div>
     </>
   );
 }

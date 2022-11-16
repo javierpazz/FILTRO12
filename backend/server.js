@@ -10,6 +10,7 @@ import configurationRouter from './routes/configurationRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import orderRouter from './routes/orderRoutes.js';
 import uploadRouter from './routes/uploadRoutes.js';
+import invoiceRouter from './routes/invoiceRoutes.js';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use('/api/products', productRouter);
 app.use('/api/suppliers', supplierRouter);
 app.use('/api/users', userRouter);
 app.use('/api/orders', orderRouter);
+app.use('/api/invoices', invoiceRouter);
 app.use('/api/valuees', valueeRouter);
 app.use('/api/configurations', configurationRouter);
 

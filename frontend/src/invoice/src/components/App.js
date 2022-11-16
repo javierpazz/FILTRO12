@@ -10,6 +10,7 @@ import Notes from './Notes';
 import Table from './Table';
 import { toast } from 'react-toastify';
 import TableForm from './TableForm';
+import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -63,7 +64,7 @@ function App() {
     invoice: { invoiceItems },
   } = state;
 
-  const { userInfo } = state;
+  const { invoice, userInfo } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -129,8 +130,17 @@ function App() {
     searchUser(e.target.value);
   };
 
+  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+  invoice.itemsPrice = round2(
+    invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
+  );
+  invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
+  invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
+  invoice.totalPrice =
+    invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+
   const placeInvoiceHandler = async () => {
-    list.map((item) => stockHandler({ item }));
+    //    list.map((item) => stockHandler({ item }));
 
     orderHandler();
   };
@@ -162,15 +172,15 @@ function App() {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
       const { data } = await axios.post(
-        '/api/orders',
+        '/api/invoices',
         {
-          //          orderItems: cart.cartItems,
+          invoiceItems: invoice.invoiceItems,
           shippingAddress: '',
           paymentMethod: '',
           itemsPrice: '',
           shippingPrice: '',
           taxPrice: '',
-          //          totalPrice: cart.totalPrice,
+          totalPrice: invoice.totalPrice,
         },
         {
           headers: {
@@ -178,10 +188,10 @@ function App() {
           },
         }
       );
-      ctxDispatch({ type: 'CART_CLEAR' });
+      ctxDispatch({ type: 'INVOICE_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
-      localStorage.removeItem('cartItems');
-      navigate(`/order/${data.order._id}`);
+      localStorage.removeItem('invoiceItems');
+      //navigate(`/order/${data.order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));
@@ -377,7 +387,7 @@ function App() {
               <div className="bordeTable">
                 <div className="bordeTableinput">
                   <Row>
-                    <Col md={4} sm={3} xs={12}>
+                    <Col md={3} sm={3} xs={12}>
                       <Card.Body>
                         <Card.Title>
                           <ReactToPrint
@@ -387,7 +397,7 @@ function App() {
                         </Card.Title>
                       </Card.Body>
                     </Col>
-                    <Col md={4} sm={3} xs={12}>
+                    <Col md={3} sm={3} xs={12}>
                       <Card.Body>
                         <Card.Title>
                           <ReactToPrint
@@ -398,7 +408,7 @@ function App() {
                       </Card.Body>
                     </Col>
 
-                    <Col md={4} sm={3} xs={12}>
+                    <Col md={3} sm={3} xs={12}>
                       <div className="d-grid">
                         <Button
                           type="button"
@@ -409,6 +419,22 @@ function App() {
                         </Button>
                       </div>
                       {loading && <LoadingBox></LoadingBox>}
+                    </Col>
+
+                    <Col md={3} sm={3} xs={12}>
+                      <Card.Body>
+                        <Card.Title>
+                          <ListGroup.Item>
+                            <h3>
+                              Total: $
+                              {invoiceItems.reduce(
+                                (a, c) => a + c.price * c.quantity,
+                                0
+                              )}
+                            </h3>
+                          </ListGroup.Item>
+                        </Card.Title>
+                      </Card.Body>
                     </Col>
                   </Row>
                 </div>
