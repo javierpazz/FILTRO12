@@ -164,7 +164,7 @@ export default function ValueeListScreen() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>NAME</th>
+                <th>VALOR</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -172,7 +172,7 @@ export default function ValueeListScreen() {
               {valuees.map((valuee) => (
                 <tr key={valuee._id}>
                   <td>{valuee.codVal}</td>
-                  <td>{valuee.name}</td>
+                  <td>{valuee.desVal}</td>
                   <td>
                     <Button
                       type="button"

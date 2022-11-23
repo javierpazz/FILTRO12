@@ -35,6 +35,19 @@ const reducer = (state, action) => {
       };
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
+
+    case 'VALUE_FETCH_REQUEST':
+      return { ...state, loadingVal: true };
+    case 'VALUE_FETCH_SUCCESS':
+      return {
+        ...state,
+        values: action.payload.values,
+        pageVal: action.payload.page,
+        pagesVal: action.payload.pages,
+        loadingVal: false,
+      };
+    case 'VALUE_FETCH_FAIL':
+      return { ...state, loadingVal: false, error: action.payload };
     default:
       return state;
   }
@@ -47,13 +60,14 @@ function App() {
       error,
       products,
       pages,
-      loadingCreate,
+      loadingVal,
       loadingDelete,
       successDelete,
     },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
+    loadingVal: true,
     error: '',
   });
 
@@ -64,7 +78,7 @@ function App() {
     invoice: { invoiceItems },
   } = state;
 
-  const { invoice, userInfo } = state;
+  const { invoice, userInfo, values } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -74,7 +88,9 @@ function App() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
+  const [desVal, setDesVal] = useState('');
   const [userss, setUserss] = useState([]);
+  const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
   const [codPro1, setCodPro1] = useState('');
   const [address, setAddress] = useState('Direccion Usuario');
@@ -115,6 +131,19 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const fetchDataVal = async () => {
+      try {
+        const { data } = await axios.get(`/api/valuees/`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setValuess(data);
+        dispatch({ type: 'VALUE_FETCH_SUCCESS', payload: data });
+      } catch (err) {}
+    };
+    fetchDataVal();
+  }, []);
+
+  useEffect(() => {
     if (window.innerWidth < width) {
       alert('Place your phone in landscape mode for the best experience');
     }
@@ -130,19 +159,39 @@ function App() {
     searchUser(e.target.value);
   };
 
-  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
-  invoice.itemsPrice = round2(
-    invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
-  );
-  invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
-  invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
-  invoice.totalPrice =
-    invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+  const searchValue = (codVal) => {
+    const valuesRow = valuess.find((row) => row._id === codVal);
+    setCodVal(valuesRow.codVal);
+    setDesVal(valuesRow.desVal);
+  };
+
+  const handleValueChange = (e) => {
+    searchValue(e.target.value);
+  };
+
+  const placeCancelInvoiceHandler = async () => {};
 
   const placeInvoiceHandler = async () => {
-    //    list.map((item) => stockHandler({ item }));
+    if (invNum && invDat && codUse) {
+      //    list.map((item) => stockHandler({ item }));
+      const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+      invoice.itemsPrice = round2(
+        invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
+      );
+      invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
+      invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
+      invoice.totalPrice =
+        invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+      invoice.remNum = remNum;
+      invoice.invNum = invNum;
+      invoice.invDat = invDat;
+      invoice.recNum = recNum;
+      invoice.recDat = recDat;
+      invoice.desVal = desVal;
+      invoice.notes = notes;
 
-    orderHandler();
+      orderHandler();
+    }
   };
 
   /////////////////////////////////////////////
@@ -173,14 +222,23 @@ function App() {
       dispatch({ type: 'CREATE_REQUEST' });
       const { data } = await axios.post(
         '/api/invoices',
+
         {
           invoiceItems: invoice.invoiceItems,
-          shippingAddress: '',
-          paymentMethod: '',
-          itemsPrice: '',
-          shippingPrice: '',
-          taxPrice: '',
+          shippingAddress: invoice.shippingAddress,
+          paymentMethod: invoice.paymentMethod,
+          itemsPrice: invoice.itemsPrice,
+          shippingPrice: invoice.shippingPrice,
+          taxPrice: invoice.taxPrice,
           totalPrice: invoice.totalPrice,
+
+          remNum: invoice.remNum,
+          invNum: invoice.invNum,
+          invDat: invoice.invDat,
+          recNum: invoice.recNum,
+          recDat: invoice.recDat,
+          desVal: invoice.desVal,
+          notes: invoice.notes,
         },
         {
           headers: {
@@ -340,17 +398,21 @@ function App() {
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
                           <Form.Label>Values</Form.Label>
-                          <Form.Control
+                          <Form.Select
                             className="input"
-                            placeholder="Values"
-                            value={codVal}
-                            onChange={(e) => setCodVal(e.target.value)}
-                            required
-                          />
+                            onClick={(e) => handleValueChange(e)}
+                          >
+                            {valuess.map((elementoV) => (
+                              <option key={elementoV._id} value={elementoV._id}>
+                                {elementoV.desVal}
+                              </option>
+                            ))}
+                          </Form.Select>
                         </Form.Group>
                       </Card.Title>
                     </Card.Body>
                   </Col>
+
                   <Col md={3}>
                     <Card.Body>
                       <Card.Title>
@@ -387,33 +449,37 @@ function App() {
               <div className="bordeTable">
                 <div className="bordeTableinput">
                   <Row>
-                    <Col md={3} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Print / Download</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
-                    </Col>
-                    <Col md={3} sm={3} xs={12}>
-                      <Card.Body>
-                        <Card.Title>
-                          <ReactToPrint
-                            trigger={() => <button>Anular</button>}
-                            content={() => componentRef.current}
-                          />
-                        </Card.Title>
-                      </Card.Body>
+                    <Col md={4} sm={3} xs={12}>
+                      <div className="d-grid">
+                        <Button
+                          type="button"
+                          onClick={placeCancelInvoiceHandler}
+                          disabled={
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codUse ||
+                            !desVal
+                          }
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                      {loading && <LoadingBox></LoadingBox>}
                     </Col>
 
-                    <Col md={3} sm={3} xs={12}>
+                    <Col md={4} sm={3} xs={12}>
                       <div className="d-grid">
                         <Button
                           type="button"
                           onClick={placeInvoiceHandler}
-                          disabled={invoiceItems.length === 0}
+                          disabled={
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codUse ||
+                            !desVal
+                          }
                         >
                           Save Invoice
                         </Button>
@@ -421,7 +487,7 @@ function App() {
                       {loading && <LoadingBox></LoadingBox>}
                     </Col>
 
-                    <Col md={3} sm={3} xs={12}>
+                    <Col md={4} sm={3} xs={12}>
                       <Card.Body>
                         <Card.Title>
                           <ListGroup.Item>

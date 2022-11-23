@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const valueeSchema = new mongoose.Schema(
   {
     codVal: { type: Number, required: true },
-    name: { type: String, required: true, unique: true },
+    desVal: { type: String, required: true, unique: true },
   },
   {
     timestamps: true,

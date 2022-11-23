@@ -33,8 +33,15 @@ invoiceRouter.post(
       taxPrice: req.body.taxPrice,
       totalPrice: req.body.totalPrice,
       user: req.user._id,
+      remNum: req.body.remNum,
+      invNum: req.body.invNum,
+      invDat: req.body.invDat,
+      recNum: req.body.recNum,
+      recDat: req.body.recDat,
+      desVal: req.body.desVal,
+      notes: req.body.notes,
+      salbuy: 'SALE',
     });
-
     const invoice = await newInvoice.save();
     res.status(201).send({ message: 'New Invoice Created', invoice });
   })

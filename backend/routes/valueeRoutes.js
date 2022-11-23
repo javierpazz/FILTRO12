@@ -17,7 +17,7 @@ valueeRouter.post(
   expressAsyncHandler(async (req, res) => {
     const newValuee = new Valuee({
       codVal: 0,
-      name: 'sample name ' + Date.now(),
+      desVal: 'sample Valor ' + Date.now(),
     });
     const valuee = await newValuee.save();
     res.send({ message: 'Valuee Created', valuee });
@@ -33,7 +33,7 @@ valueeRouter.put(
     const valuee = await Valuee.findById(valueeId);
     if (valuee) {
       valuee.codVal = req.body.codVal;
-      valuee.name = req.body.name;
+      valuee.desVal = req.body.desVal;
       await valuee.save();
       res.send({ message: 'Valuee Updated' });
     } else {

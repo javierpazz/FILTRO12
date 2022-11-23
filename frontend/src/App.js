@@ -159,8 +159,8 @@ function App() {
                       <LinkContainer to="/admin/configurations">
                         <NavDropdown.Item>Configurations</NavDropdown.Item>
                       </LinkContainer>
-                      <LinkContainer to="/admin/invoices">
-                        <NavDropdown.Item>Invoices</NavDropdown.Item>
+                      <LinkContainer to="/admin/invoicer">
+                        <NavDropdown.Item>Invoicer</NavDropdown.Item>
                       </LinkContainer>
                     </NavDropdown>
                   )}
@@ -320,7 +320,7 @@ function App() {
                 }
               ></Route>
               <Route
-                path="/admin/invoices"
+                path="/admin/invoicer"
                 element={
                   <AdminRoute>
                     <Invoices />

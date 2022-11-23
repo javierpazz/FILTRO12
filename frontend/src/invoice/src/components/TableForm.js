@@ -45,6 +45,12 @@ export default function TableForm({
   total,
   setTotal,
 }) {
+  const { state, dispatch: ctxDispatch } = useContext(Store);
+  const {
+    invoice: { invoiceItems },
+    userInfo,
+  } = state;
+
   const [
     {
       loading,
@@ -61,13 +67,7 @@ export default function TableForm({
     error: '',
   });
 
-  const { state, dispatch: ctxDispatch } = useContext(Store);
-  const {
-    invoice: { invoiceItems },
-  } = state;
-
   const [isEditing, setIsEditing] = useState(false);
-  const { userInfo } = state;
   const [productss, setProductss] = useState([]);
   const [productR, setProductR] = useState('');
   const [stock, setStock] = useState(0);

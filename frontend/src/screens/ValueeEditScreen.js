@@ -54,7 +54,7 @@ export default function ValueEditScreen() {
     });
 
   const [codVal, setCodVal] = useState('');
-  const [name, setName] = useState('');
+  const [desVal, setDesVal] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +62,7 @@ export default function ValueEditScreen() {
         dispatch({ type: 'FETCH_REQUEST' });
         const { data } = await axios.get(`/api/valuees/${valueeId}`);
         setCodVal(data.codVal);
-        setName(data.name);
+        setDesVal(data.desVal);
         dispatch({ type: 'FETCH_SUCCESS' });
       } catch (err) {
         dispatch({
@@ -83,7 +83,7 @@ export default function ValueEditScreen() {
         {
           _id: valueeId,
           codVal,
-          name,
+          desVal,
         },
         {
           headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -121,11 +121,11 @@ export default function ValueEditScreen() {
               required
             />
           </Form.Group>
-          <Form.Group className="mb-3" controlId="name">
+          <Form.Group className="mb-3" controlId="desVal">
             <Form.Label>Name</Form.Label>
             <Form.Control
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={desVal}
+              onChange={(e) => setDesVal(e.target.value)}
               required
             />
           </Form.Group>
