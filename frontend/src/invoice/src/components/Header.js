@@ -32,5 +32,5 @@ export default function Header({ handlePrint }) {
         </div> */}
       </header>
     </>
-  )
+  );
 }

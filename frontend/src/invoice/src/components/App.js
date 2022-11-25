@@ -110,9 +110,9 @@ function App() {
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
   const [width] = useState(641);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   const componentRef = useRef();
-
   const handlePrint = () => {
     window.print();
   };
@@ -190,7 +190,9 @@ function App() {
       invoice.desVal = desVal;
       invoice.notes = notes;
 
-      orderHandler();
+      //      orderHandler();
+      setShowInvoice(true);
+      //      handlePrint();
     }
   };
 
@@ -261,8 +263,8 @@ function App() {
   return (
     <>
       <main>
-        <section>
-          <div>
+        {!showInvoice ? (
+          <>
             {/* name, address, email, phone, bank name, bank account number, website client name, client address, invoice number, invoice date, due date, notes */}
             <div>
               <div className="bordeTable">
@@ -417,7 +419,7 @@ function App() {
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Remito Number</Form.Label>
+                          <Form.Label>Remit Number</Form.Label>
                           <Form.Control
                             className="input"
                             placeholder="Remito Number"
@@ -524,61 +526,56 @@ function App() {
                     setTotal={setTotal}
                   />
                 </article>
-
-                {/* <button
-              onClick={() => setShowInvoice(true)}
-              className="bg-blue-500 text-white font-bold py-2 px-8 rounded shadow border-2 border-blue-500 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-            >
-              Preview Invoice
-            </button> */}
               </div>
             </div>
-          </div>
-        </section>
+          </>
+        ) : (
+          <>
+            <ReactToPrint
+              trigger={() => <Button type="button">Print / Download</Button>}
+              content={() => componentRef.current}
+            />
+            <Button onClick={() => setShowInvoice(false)}>New Invoice</Button>
 
-        {/* Invoice Preview */}
+            {/* Invoice Preview */}
 
-        <div ref={componentRef} className="p-5">
-          <Header handlePrint={handlePrint} />
+            <div ref={componentRef} className="p-5">
+              <Header handlePrint={handlePrint} />
 
-          <MainDetails codUse={codUse} name={name} address={address} />
+              <MainDetails codUse={codUse} name={name} address={address} />
 
-          <ClientDetails
-            clientName={clientName}
-            clientAddress={clientAddress}
-          />
+              <ClientDetails
+                clientName={clientName}
+                clientAddress={clientAddress}
+              />
 
-          <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
+              <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
 
-          <Table
-            desPro={desPro}
-            quantity={quantity}
-            price={price}
-            amount={amount}
-            invoiceItems={invoiceItems}
-            setList={setList}
-            total={total}
-            setTotal={setTotal}
-          />
+              <Table
+                desPro={desPro}
+                quantity={quantity}
+                price={price}
+                amount={amount}
+                invoiceItems={invoiceItems}
+                setList={setList}
+                total={total}
+                setTotal={setTotal}
+              />
 
-          <Notes notes={notes} />
+              <Notes notes={notes} />
 
-          <Footer
-            name={name}
-            address={address}
-            website={website}
-            email={email}
-            phone={phone}
-            bankAccount={bankAccount}
-            bankName={bankName}
-          />
-        </div>
-        {/* <button
-            onClick={() => setShowInvoice(false)}
-            className="mt-5 bg-blue-500 text-white font-bold py-2 px-8 rounded shadow border-2 border-blue-500 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-          >
-            Edit Information
-          </button> */}
+              <Footer
+                name={name}
+                address={address}
+                website={website}
+                email={email}
+                phone={phone}
+                bankAccount={bankAccount}
+                bankName={bankName}
+              />
+            </div>
+          </>
+        )}
       </main>
     </>
   );

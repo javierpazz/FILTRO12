@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function Table({ invoiceItems, total }) {
+  total = invoiceItems.reduce((a, c) => a + c.price * c.quantity, 0);
+
   return (
     <>
       <table width="100%" className="mb-10">
@@ -16,11 +18,14 @@ export default function Table({ invoiceItems, total }) {
         {invoiceItems.map((itemInv) => (
           <React.Fragment key={itemInv._id}>
             <tbody>
+              {console.log(itemInv)}
+
               <tr className="h-10">
                 <td>{itemInv._id}</td>
                 <td>{itemInv.name}</td>
                 <td>{itemInv.quantity}</td>
                 <td>{itemInv.price}</td>
+                <td>{itemInv.amount}</td>
               </tr>
             </tbody>
           </React.Fragment>

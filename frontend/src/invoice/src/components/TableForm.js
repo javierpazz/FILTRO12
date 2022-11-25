@@ -8,6 +8,7 @@ import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
 import { Store } from '../../../Store';
 
 const reducer = (state, action) => {
@@ -104,7 +105,7 @@ export default function TableForm({
     if (codPro && quantity > 0) {
       ctxDispatch({
         type: 'INVOICE_ADD_ITEM',
-        payload: { ...itemInv, quantity },
+        payload: { ...itemInv, quantity, amount, price },
       });
     }
   };
@@ -122,6 +123,7 @@ export default function TableForm({
     setDesPro(productRow.name);
     setQuantity(1);
     setPrice(productRow.price);
+    setAmount(productRow.price);
     setStock(productRow.countInStock);
   };
 
@@ -228,14 +230,17 @@ export default function TableForm({
                 </Card.Title>
               </Card.Body>
             </Col>
+
             <Col md={2}>
               <Card.Body>
                 <Card.Title>
                   <Form.Group>
-                    <button onClick={() => addToCartHandler(productR)}>
-                      <AiOutlineEdit className="text-green-500 font-bold text-xl" />
+                    <Button
+                      onClick={() => addToCartHandler(productR)}
+                      className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                    >
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
-                    </button>
+                    </Button>
                   </Form.Group>
                 </Card.Title>
               </Card.Body>
@@ -265,9 +270,12 @@ export default function TableForm({
                 <td>{itemInv.price}</td>
                 <td className="amount">{itemInv.quantity * itemInv.price}</td>
                 <td>
-                  <button onClick={() => removeItemHandler(itemInv)}>
+                  <Button
+                    className="mt-0 mb-0 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                    onClick={() => removeItemHandler(itemInv)}
+                  >
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
-                  </button>
+                  </Button>
                 </td>
               </tr>
             </tbody>
