@@ -36,6 +36,19 @@ const reducer = (state, action) => {
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
 
+    case 'SUPPLIER_FETCH_REQUEST':
+      return { ...state, loading: true };
+    case 'SUPPLIER_FETCH_SUCCESS':
+      return {
+        ...state,
+        suppliers: action.payload.supliers,
+        page: action.payload.page,
+        pages: action.payload.pages,
+        loading: false,
+      };
+    case 'SUPPLIER_FETCH_FAIL':
+      return { ...state, loading: false, error: action.payload };
+
     case 'VALUE_FETCH_REQUEST':
       return { ...state, loadingVal: true };
     case 'VALUE_FETCH_SUCCESS':
@@ -90,6 +103,8 @@ function App() {
   const [codVal, setCodVal] = useState('');
   const [desVal, setDesVal] = useState('');
   const [userss, setUserss] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [codSup, setCodSup] = useState('');
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
   const [codPro1, setCodPro1] = useState('');
@@ -133,6 +148,19 @@ function App() {
   useEffect(() => {
     const fetchDataVal = async () => {
       try {
+        const { data } = await axios.get(`/api/suppliers/`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setSuppliers(data);
+        dispatch({ type: 'SUPPLIER_FETCH_SUCCESS', payload: data });
+      } catch (err) {}
+    };
+    fetchDataVal();
+  }, []);
+
+  useEffect(() => {
+    const fetchDataVal = async () => {
+      try {
         const { data } = await axios.get(`/api/valuees/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
@@ -149,14 +177,14 @@ function App() {
     }
   }, [width]);
 
-  const searchUser = (codUse) => {
-    const usersRow = userss.find((row) => row._id === codUse);
-    setCodUse(usersRow._id);
-    setName(usersRow.name);
+  const searchSup = (codSup) => {
+    const supplierRow = suppliers.find((row) => row._id === codSup);
+    setCodSup(supplierRow._id);
+    setName(supplierRow.name);
   };
 
   const handleChange = (e) => {
-    searchUser(e.target.value);
+    searchSup(e.target.value);
   };
 
   const searchValue = (codVal) => {
@@ -172,8 +200,10 @@ function App() {
   const placeCancelInvoiceHandler = async () => {};
 
   const placeInvoiceHandler = async () => {
-    if (invNum && invDat && codUse) {
+    if (invNum && invDat && codSup) {
+      //    list.map((item) => stockHandler({ item }));
       invoiceItems.map((item) => stockHandler({ item }));
+
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
       invoice.itemsPrice = round2(
         invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
@@ -182,7 +212,7 @@ function App() {
       invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
       invoice.totalPrice =
         invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
-      invoice.codSup = 0;
+      invoice.codSup = codSup;
       invoice.remNum = remNum;
       invoice.invNum = invNum;
       invoice.invDat = invDat;
@@ -200,12 +230,10 @@ function App() {
   /////////////////////////////////////////////
 
   const stockHandler = async (item) => {
-    // console.log(item.item._id);
-
     try {
       dispatch({ type: 'CREATE_REQUEST' });
       await axios.put(
-        `/api/products/downstock/${item.item._id}`,
+        `/api/products/upstock/${item.item._id}`,
         {
           quantitys: item.item.quantity,
         },
@@ -237,7 +265,7 @@ function App() {
           taxPrice: invoice.taxPrice,
           totalPrice: invoice.totalPrice,
 
-          supplier: invoice.codSup,
+          codSup: invoice.codSup,
 
           remNum: invoice.remNum,
           invNum: invoice.invNum,
@@ -246,7 +274,7 @@ function App() {
           recDat: invoice.recDat,
           desVal: invoice.desVal,
           notes: invoice.notes,
-          salbuy: 'SALE',
+          salbuy: 'BUY',
         },
         {
           headers: {
@@ -279,29 +307,28 @@ function App() {
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>User Code</Form.Label>
+                          <Form.Label>Supplier Code</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="User Code"
-                            value={codUse}
-                            onChange={(e) => setCodUse(e.target.value)}
+                            placeholder="Supplier Code"
+                            value={codSup}
+                            onChange={(e) => setCodSup(e.target.value)}
                             required
                           />
                         </Form.Group>
                       </Card.Title>
                     </Card.Body>
                   </Col>
-
                   <Col md={8}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>User Name</Form.Label>
+                          <Form.Label>Supplier Name</Form.Label>
                           <Form.Select
                             className="input"
                             onClick={(e) => handleChange(e)}
                           >
-                            {userss.map((elemento) => (
+                            {suppliers.map((elemento) => (
                               <option key={elemento._id} value={elemento._id}>
                                 {elemento.name}
                               </option>
@@ -466,7 +493,7 @@ function App() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codUse ||
+                            !codSup ||
                             !desVal
                           }
                         >
@@ -485,7 +512,7 @@ function App() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codUse ||
+                            !codSup ||
                             !desVal
                           }
                         >

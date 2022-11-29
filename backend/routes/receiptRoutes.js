@@ -1,0 +1,185 @@
+import express from 'express';
+import expressAsyncHandler from 'express-async-handler';
+import Receipt from '../models/receiptModel.js';
+import User from '../models/userModel.js';
+import Product from '../models/productModel.js';
+import { isAuth, isAdmin, mailgun, payReceiptEmailTemplate } from '../utils.js';
+
+const receiptRouter = express.Router();
+
+receiptRouter.get(
+  '/',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const receipts = await Receipt.find().populate('user', 'name');
+    res.send(receipts);
+  })
+);
+
+receiptRouter.post(
+  '/',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const newReceipt = new Receipt({
+      receiptItems: req.body.receiptItems.map((x) => ({
+        ...x,
+        valuee: x._id,
+      })),
+      itemsPrice: req.body.itemsPrice,
+      totalPrice: req.body.totalPrice,
+      user: req.user._id,
+      supplier: req.body.codSup,
+      recNum: req.body.recNum,
+      recDat: req.body.recDat,
+      desval: req.body.desval,
+      notes: req.body.notes,
+      salbuy: req.body.salbuy,
+    });
+    const receipt = await newReceipt.save();
+    res.status(201).send({ message: 'New receipt Created', receipt });
+  })
+);
+
+receiptRouter.get(
+  '/summary',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const receipts = await Receipt.aggregate([
+      {
+        $group: {
+          _id: null,
+          numReceipts: { $sum: 1 },
+          totalSales: { $sum: '$totalPrice' },
+        },
+      },
+    ]);
+    const users = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          numUsers: { $sum: 1 },
+        },
+      },
+    ]);
+    const dailyReceipts = await Receipt.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          receipts: { $sum: 1 },
+          sales: { $sum: '$totalPrice' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+    const productCategories = await Product.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    res.send({ users, receipts, dailyReceipts, productCategories });
+  })
+);
+
+receiptRouter.get(
+  '/mine',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const receipts = await Receipt.find({ user: req.user._id });
+    res.send(receipts);
+  })
+);
+
+receiptRouter.get(
+  '/:id',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const receipt = await Receipt.findById(req.params.id);
+    if (receipt) {
+      res.send(receipt);
+    } else {
+      res.status(404).send({ message: 'Receipt Not Found' });
+    }
+  })
+);
+
+receiptRouter.put(
+  '/:id/deliver',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const receipt = await Receipt.findById(req.params.id);
+    if (receipt) {
+      receipt.isDelivered = true;
+      receipt.deliveredAt = Date.now();
+      await receipt.save();
+      res.send({ message: 'Receipt Delivered' });
+    } else {
+      res.status(404).send({ message: 'Receipt Not Found' });
+    }
+  })
+);
+
+receiptRouter.put(
+  '/:id/pay',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const receipt = await Receipt.findById(req.params.id).populate(
+      'user',
+      'email name'
+    );
+    if (receipt) {
+      receipt.isPaid = true;
+      receipt.paidAt = Date.now();
+      receipt.paymentResult = {
+        id: req.body.id,
+        status: req.body.status,
+        update_time: req.body.update_time,
+        email_address: req.body.email_address,
+      };
+
+      const updatedReceipt = await receipt.save();
+      mailgun()
+        .messages()
+        .send(
+          {
+            from: 'Amazona <amazona@mg.yourdomain.com>',
+            to: `${receipt.user.name} <${receipt.user.email}>`,
+            subject: `New receipt ${receipt._id}`,
+            html: payReceiptEmailTemplate(receipt),
+          },
+          (error, body) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log(body);
+            }
+          }
+        );
+
+      res.send({ message: 'Receipt Paid', receipt: updatedReceipt });
+    } else {
+      res.status(404).send({ message: 'Receipt Not Found' });
+    }
+  })
+);
+
+receiptRouter.delete(
+  '/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const receipt = await Receipt.findById(req.params.id);
+    if (receipt) {
+      await receipt.remove();
+      res.send({ message: 'Receipt Deleted' });
+    } else {
+      res.status(404).send({ message: 'Receipt Not Found' });
+    }
+  })
+);
+
+export default receiptRouter;

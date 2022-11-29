@@ -18,7 +18,7 @@ const reducer = (state, action) => {
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        products: action.payload.products,
+        valuees: action.payload.valuees,
         page: action.payload.page,
         pages: action.payload.pages,
         loading: false,
@@ -30,15 +30,13 @@ const reducer = (state, action) => {
   }
 };
 
-export default function TableForm({
-  codPro,
-  setCodPro,
-  desPro,
-  setDesPro,
+export default function TableFormRec({
+  codVal,
+  setCodVal,
+  desval,
+  setDesval,
   quantity,
   setQuantity,
-  price,
-  setPrice,
   amount,
   setAmount,
   list,
@@ -48,7 +46,7 @@ export default function TableForm({
 }) {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
-    invoice: { invoiceItems },
+    receipt: { receiptItems },
     userInfo,
   } = state;
 
@@ -69,17 +67,17 @@ export default function TableForm({
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [productss, setProductss] = useState([]);
-  const [productR, setProductR] = useState('');
+  const [valuees, setValuees] = useState([]);
+  const [valueeR, setValueeR] = useState('');
   const [stock, setStock] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`/api/products/`, {
+        const { data } = await axios.get(`/api/valuees/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        setProductss(data);
+        setValuees(data);
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {}
     };
@@ -88,12 +86,10 @@ export default function TableForm({
 
   // Calculate items amount function
   useEffect(() => {
-    const calculateAmount = (amount) => {
-      setAmount(quantity * price);
-    };
+    const calculateAmount = (amount) => {};
 
     calculateAmount(amount);
-  }, [codPro, amount, price, quantity, setAmount]);
+  }, [codVal, amount, setAmount]);
 
   // Submit form function
   const handleSubmit = (e) => {
@@ -101,42 +97,30 @@ export default function TableForm({
     addToCartHandler();
   };
 
-  const addToCartHandler = async (itemInv) => {
-    if (codPro && quantity > 0) {
+  const addToCartHandler = async (itemVal) => {
+    if (codVal && amount > 0) {
       ctxDispatch({
-        type: 'INVOICE_ADD_ITEM',
-        payload: { ...itemInv, quantity, amount, price },
+        type: 'RECEIPT_ADD_ITEM',
+        payload: { ...itemVal, desval, amount, quantity },
       });
     }
   };
 
-  const removeItemHandler = (itemInv) => {
-    ctxDispatch({ type: 'INVOICE_REMOVE_ITEM', payload: itemInv });
+  const removeItemHandler = (itemVal) => {
+    ctxDispatch({ type: 'RECEIPT_REMOVE_ITEM', payload: itemVal });
   };
 
   // Edit function
 
-  const searchProduct = (codPro) => {
-    const productRow = productss.find((row) => row._id === codPro);
-    setProductR(productRow);
-    setCodPro(productRow._id);
-    setDesPro(productRow.name);
-    setQuantity(1);
-    setPrice(productRow.price);
-    setAmount(productRow.price);
-    setStock(productRow.countInStock);
-  };
-
-  const stockControl = (e) => {
-    if (e.target.value <= stock) {
-      setQuantity(e.target.value);
-    } else {
-      toast.error('This Product does not have stock enough');
-    }
+  const searchValuee = (codVal) => {
+    const valueeR = valuees.find((row) => row._id === codVal);
+    setValueeR(valueeR);
+    setCodVal(valueeR._id);
+    setDesval(valueeR.desVal);
   };
 
   const handleChange = (e) => {
-    searchProduct(e.target.value);
+    searchValuee(e.target.value);
   };
 
   return (
@@ -150,12 +134,12 @@ export default function TableForm({
               <Card.Body>
                 <Card.Title>
                   <Form.Group className="input" controlId="name">
-                    <Form.Label>Product Code</Form.Label>
+                    <Form.Label>Value Code</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Product Code"
-                      value={codPro}
-                      onChange={(e) => setCodPro(e.target.value)}
+                      placeholder="Value Code"
+                      value={codVal}
+                      onChange={(e) => setCodVal(e.target.value)}
                       required
                     />
                   </Form.Group>
@@ -168,15 +152,14 @@ export default function TableForm({
                 <Card.Title>
                   <Card.Title>
                     <Form.Group className="input" controlId="name">
-                      <Form.Label>Product Description</Form.Label>
+                      <Form.Label>Valuee Description</Form.Label>
                       <Form.Select
                         className="input"
                         onClick={(e) => handleChange(e)}
                       >
-                        {productss.map((elemento) => (
+                        {valuees.map((elemento) => (
                           <option key={elemento._id} value={elemento._id}>
-                            {elemento._id}+{elemento.name}+
-                            {elemento.countInStock}+{elemento.price}
+                            {elemento.desVal}
                           </option>
                         ))}
                       </Form.Select>
@@ -185,17 +168,16 @@ export default function TableForm({
                 </Card.Title>
               </Card.Body>
             </Col>
-
-            <Col md={1}>
+            <Col md={2}>
               <Card.Body>
                 <Card.Title>
                   <Form.Group className="input" controlId="name">
-                    <Form.Label>Quantity</Form.Label>
+                    <Form.Label>Value Number</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Quantity"
+                      placeholder="Value Number"
                       value={quantity}
-                      onChange={(e) => stockControl(e)}
+                      onChange={(e) => setQuantity(e.target.value)}
                       required
                     />
                   </Form.Group>
@@ -206,26 +188,15 @@ export default function TableForm({
             <Col md={1}>
               <Card.Body>
                 <Card.Title>
-                  <Form.Group className="input" controlId="name">
-                    <Form.Label>Price</Form.Label>
+                  <Form.Group className="input" controlId="amount">
+                    <Form.Label>Amount</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Price"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="Amount"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                       required
                     />
-                  </Form.Group>
-                </Card.Title>
-              </Card.Body>
-            </Col>
-
-            <Col md={1}>
-              <Card.Body>
-                <Card.Title>
-                  <Form.Group className="input">
-                    <Form.Label>Amount</Form.Label>
-                    <p>{amount}</p>
                   </Form.Group>
                 </Card.Title>
               </Card.Body>
@@ -236,7 +207,7 @@ export default function TableForm({
                 <Card.Title>
                   <Form.Group>
                     <Button
-                      onClick={() => addToCartHandler(productR)}
+                      onClick={() => addToCartHandler(valueeR)}
                       className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
                     >
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
@@ -253,27 +224,25 @@ export default function TableForm({
       <table width="100%" className="mb-10">
         <thead>
           <tr className="bg-gray-100 p-1">
-            <td className="font-bold">Product Code</td>
-            <td className="font-bold">Product Description</td>
-            <td className="font-bold">Quantity</td>
-            <td className="font-bold">Price</td>
+            <td className="font-bold">Value Code</td>
+            <td className="font-bold">Value Description</td>
+            <td className="font-bold">Value Number</td>
             <td className="font-bold">Amount</td>
             <td className="font-bold">Options</td>
           </tr>
         </thead>
-        {invoiceItems.map((itemInv) => (
-          <React.Fragment key={itemInv._id}>
+        {receiptItems.map((itemVal) => (
+          <React.Fragment key={itemVal._id}>
             <tbody>
               <tr className="h-10">
-                <td>{itemInv._id}</td>
-                <td>{itemInv.name}</td>
-                <td>{itemInv.quantity}</td>
-                <td>{itemInv.price}</td>
-                <td className="amount">{itemInv.quantity * itemInv.price}</td>
+                <td>{itemVal._id}</td>
+                <td>{itemVal.desval}</td>
+                <td>{itemVal.quantity}</td>
+                <td>{itemVal.amount}</td>
                 <td>
                   <Button
                     className="mt-0 mb-0 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-                    onClick={() => removeItemHandler(itemInv)}
+                    onClick={() => removeItemHandler(itemVal)}
                   >
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                   </Button>

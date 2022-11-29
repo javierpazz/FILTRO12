@@ -30,6 +30,17 @@ const initialState = {
       ? JSON.parse(localStorage.getItem('invoiceItems'))
       : [],
   },
+  receipt: {
+    shippingAddress: localStorage.getItem('shippingAddress')
+      ? JSON.parse(localStorage.getItem('shippingAddress'))
+      : { location: {} },
+    paymentMethod: localStorage.getItem('paymentMethod')
+      ? localStorage.getItem('paymentMethod')
+      : '',
+    receiptItems: localStorage.getItem('receiptItems')
+      ? JSON.parse(localStorage.getItem('receiptItems'))
+      : [],
+  },
 };
 function reducer(state, action) {
   switch (action.type) {
@@ -84,6 +95,29 @@ function reducer(state, action) {
     case 'INVOICE_CLEAR':
       return { ...state, invoice: { ...state.invoice, invoiceItems: [] } };
 
+    case 'RECEIPT_ADD_ITEM':
+      // add to cart
+      const newItemVal = action.payload;
+      const existItemVal = state.receipt.receiptItems.find(
+        (itemVal) => itemVal._id === newItemVal._id
+      );
+      const receiptItems = existItemVal
+        ? state.receipt.receiptItems.map((itemVal) =>
+            itemVal._id === existItemVal._id ? newItemVal : itemVal
+          )
+        : [...state.receipt.receiptItems, newItemVal];
+      localStorage.setItem('receiptItems', JSON.stringify(receiptItems));
+      return { ...state, receipt: { ...state.receipt, receiptItems } };
+    case 'RECEIPT_REMOVE_ITEM': {
+      const receiptItems = state.receipt.receiptItems.filter(
+        (itemVal) => itemVal._id !== action.payload._id
+      );
+      localStorage.setItem('receiptItems', JSON.stringify(receiptItems));
+      return { ...state, receipt: { ...state.receipt, receiptItems } };
+    }
+    case 'RECEIPT_CLEAR':
+      return { ...state, receipt: { ...state.receipt, receiptItems: [] } };
+
     case 'USER_SIGNIN':
       return { ...state, userInfo: action.payload };
     case 'USER_SIGNOUT':
@@ -98,6 +132,10 @@ function reducer(state, action) {
         invoice: {
           invoiceItems: [],
           shippingAddress: {},
+          paymentMethod: '',
+        },
+        receipt: {
+          receiptItems: [],
           paymentMethod: '',
         },
       };

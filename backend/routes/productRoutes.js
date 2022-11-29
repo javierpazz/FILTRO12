@@ -33,6 +33,23 @@ productRouter.post(
 );
 
 productRouter.put(
+  '/upstock/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+    if (product) {
+      product.countInStock = product.countInStock + req.body.quantitys;
+      await product.save();
+      res.send({ message: 'Product Updated' });
+    } else {
+      res.status(404).send({ message: 'Product Not Found' });
+    }
+  })
+);
+
+productRouter.put(
   '/downstock/:id',
   isAuth,
   isAdmin,

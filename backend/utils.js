@@ -168,3 +168,65 @@ export const payInvoiceEmailTemplate = (invoice) => {
   </p>
   `;
 };
+
+export const payReceiptEmailTemplate = (receipt) => {
+  return `<h1>Thanks for shopping with us</h1>
+  <p>
+  Hi ${invoice.user.name},</p>
+  <p>We have finished processing your invoice.</p>
+  <h2>[Invoice ${receipt._id}] (${receipt.createdAt
+    .toString()
+    .substring(0, 10)})</h2>
+  <table>
+  <thead>
+  <tr>
+  <td><strong>Product</strong></td>
+  <td><strong>Quantity</strong></td>
+  <td><strong align="right">Price</strong></td>
+  </thead>
+  <tbody>
+  ${receipt.receiptItems
+    .map(
+      (item) => `
+    <tr>
+    <td>${item.desVal}</td>
+    <td align="center">${item.quantity}</td>
+    <td align="right"> $${item.amount.toFixed(2)}</td>
+    </tr>
+  `
+    )
+    .join('\n')}
+  </tbody>
+  <tfoot>
+  <tr>
+  <td colspan="2">Items Price:</td>
+  <td align="right"> $${receipt.itemsPrice.toFixed(2)}</td>
+  </tr>
+  <tr>
+  <td colspan="2">Shipping Price:</td>
+  <td align="right"> $${receipt.shippingPrice.toFixed(2)}</td>
+  </tr>
+  <tr>
+  <td colspan="2"><strong>Total Price:</strong></td>
+  <td align="right"><strong> $${receipt.totalPrice.toFixed(2)}</strong></td>
+  </tr>
+  <tr>
+  <td colspan="2">Payment Method:</td>
+  <td align="right">${receipt.paymentMethod}</td>
+  </tr>
+  </table>
+
+  <h2>Shipping address</h2>
+  <p>
+  ${receipt.shippingAddress.fullName},<br/>
+  ${receipt.shippingAddress.address},<br/>
+  ${receipt.shippingAddress.city},<br/>
+  ${receipt.shippingAddress.country},<br/>
+  ${receipt.shippingAddress.postalCode}<br/>
+  </p>
+  <hr/>
+  <p>
+  Thanks for shopping with us.
+  </p>
+  `;
+};

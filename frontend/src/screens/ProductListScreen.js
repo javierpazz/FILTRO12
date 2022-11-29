@@ -167,6 +167,7 @@ export default function ProductListScreen() {
                 <th>PRICE</th>
                 <th>CATEGORY</th>
                 <th>BRAND</th>
+                <th>STOCK</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -178,6 +179,7 @@ export default function ProductListScreen() {
                   <td>{product.price}</td>
                   <td>{product.category}</td>
                   <td>{product.brand}</td>
+                  <td>{product.countInStock}</td>
                   <td>
                     <Button
                       type="button"

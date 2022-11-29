@@ -42,6 +42,9 @@ import ValueeEditScreen from './screens/ValueeEditScreen';
 import ConfigurationListScreen from './screens/ConfigurationListScreen';
 import ConfigurationEditScreen from './screens/ConfigurationEditScreen';
 import Invoices from './invoice/src/Invoices';
+import InvoicesRec from './invoice/src/InvoicesRec';
+import InvoicesBuy from './invoice/src/InvoicesBuy';
+import InvoicesBuyRec from './invoice/src/InvoicesBuyRec';
 import MapScreen from './screens/MapScreen';
 
 function App() {
@@ -160,7 +163,16 @@ function App() {
                         <NavDropdown.Item>Configurations</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/invoicer">
-                        <NavDropdown.Item>Invoicer</NavDropdown.Item>
+                        <NavDropdown.Item>Sales Invoices</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicerRec">
+                        <NavDropdown.Item>Receipts By Sales</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicerBuy">
+                        <NavDropdown.Item>Buy Invoices</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicerBuyRec">
+                        <NavDropdown.Item>Receipt By Buys</NavDropdown.Item>
                       </LinkContainer>
                     </NavDropdown>
                   )}
@@ -324,6 +336,30 @@ function App() {
                 element={
                   <AdminRoute>
                     <Invoices />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicerRec"
+                element={
+                  <AdminRoute>
+                    <InvoicesRec />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicerBuy"
+                element={
+                  <AdminRoute>
+                    <InvoicesBuy />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicerBuyRec"
+                element={
+                  <AdminRoute>
+                    <InvoicesBuyRec />
                   </AdminRoute>
                 }
               ></Route>
