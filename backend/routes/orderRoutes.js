@@ -17,6 +17,30 @@ orderRouter.get(
   })
 );
 
+const PAGE_SIZE = 3;
+
+orderRouter.get(
+  '/admin',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const orders = await Order.find()
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countOrders = await Order.countDocuments();
+    res.send({
+      orders,
+      countOrders,
+      page,
+      pages: Math.ceil(countOrders / pageSize),
+    });
+  })
+);
+
 orderRouter.post(
   '/',
   isAuth,
@@ -85,8 +109,21 @@ orderRouter.get(
   '/mine',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id });
-    res.send(orders);
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const orders = await Order.find({ user: req.user._id })
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countOrders = await Order.countDocuments();
+
+    res.send({
+      orders,
+      countOrders,
+      page,
+      pages: Math.ceil(countOrders / pageSize),
+    });
   })
 );
 

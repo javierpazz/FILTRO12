@@ -18,6 +18,7 @@ import { Store } from '../../../Store';
 import ReactToPrint from 'react-to-print';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../../../components/LoadingBox';
 import { getError } from '../../../utils';
 
@@ -40,7 +41,7 @@ const reducer = (state, action) => {
   }
 };
 
-function App() {
+function AppRec() {
   const [
     {
       loading,
@@ -165,9 +166,8 @@ function App() {
         receipt.receiptItems.reduce((a, c) => a + amount * 1, 0)
       );
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
-      receipt.taxPrice = round2(0.15 * receipt.itemsPrice);
-      receipt.totalPrice =
-        receipt.itemsPrice + receipt.shippingPrice + receipt.taxPrice;
+      receipt.taxPrice = round2(0.15 * 0);
+      receipt.totalPrice = receipt.itemsPrice;
       receipt.codSup = 0;
       receipt.remNum = remNum;
       receipt.invNum = invNum;
@@ -230,6 +230,10 @@ function App() {
 
   return (
     <>
+      <Helmet>
+        <title>Receipt Sale Invoices</title>
+      </Helmet>
+
       <main>
         {!showReceipt ? (
           <>
@@ -454,4 +458,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppRec;

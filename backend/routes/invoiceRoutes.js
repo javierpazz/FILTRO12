@@ -17,6 +17,30 @@ invoiceRouter.get(
   })
 );
 
+const PAGE_SIZE = 3;
+
+invoiceRouter.get(
+  '/admin',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const invoices = await Invoice.find()
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countInvoices = await Invoice.countDocuments();
+    res.send({
+      invoices,
+      countInvoices,
+      page,
+      pages: Math.ceil(countInvoices / pageSize),
+    });
+  })
+);
+
 invoiceRouter.post(
   '/',
   isAuth,
@@ -96,21 +120,21 @@ invoiceRouter.get(
   '/mine',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const invoices = await Invoice.find({ user: req.user._id });
-    res.send(invoices);
-  })
-);
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
 
-invoiceRouter.get(
-  '/:id',
-  isAuth,
-  expressAsyncHandler(async (req, res) => {
-    const invoice = await Invoice.findById(req.params.id);
-    if (invoice) {
-      res.send(invoice);
-    } else {
-      res.status(404).send({ message: 'Invoice Not Found' });
-    }
+    const invoices = await Invoice.find({ user: req.user._id })
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countInvoices = await Invoice.countDocuments();
+
+    res.send({
+      invoices,
+      countInvoices,
+      page,
+      pages: Math.ceil(countInvoices / pageSize),
+    });
   })
 );
 

@@ -1,12 +1,16 @@
-import React, { useContext, useEffect, useReducer } from 'react';
-import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import React, { useContext, useEffect, useReducer } from 'react';
+import { toast } from 'react-toastify';
+import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
-import Button from 'react-bootstrap/esm/Button';
+import SearchBox from '../components/SearchBox';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -22,51 +26,108 @@ const reducer = (state, action) => {
       };
     case 'FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
+    case 'DELETE_REQUEST':
+      return { ...state, loadingDelete: true, successDelete: false };
+    case 'DELETE_SUCCESS':
+      return {
+        ...state,
+        loadingDelete: false,
+        successDelete: true,
+      };
+    case 'DELETE_FAIL':
+      return { ...state, loadingDelete: false };
+    case 'DELETE_RESET':
+      return { ...state, loadingDelete: false, successDelete: false };
     default:
       return state;
   }
 };
-
-export default function InvoiceHistoryScreen() {
-  const { state } = useContext(Store);
-  const { userInfo } = state;
-  const navigate = useNavigate();
-
-  const [{ loading, error, invoices, pages }, dispatch] = useReducer(reducer, {
+export default function InvoiceListScreen() {
+  const [
+    { loading, error, invoices, pages, loadingDelete, successDelete },
+    dispatch,
+  ] = useReducer(reducer, {
     loading: true,
     error: '',
   });
 
+  const navigate = useNavigate();
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
   const page = sp.get('page') || 1;
 
+  const { state } = useContext(Store);
+  const { userInfo } = state;
+
   useEffect(() => {
     const fetchData = async () => {
-      dispatch({ type: 'FETCH_REQUEST' });
       try {
-        const { data } = await axios.get(
-          `/api/invoices/mine?page=${page} `,
-
-          { headers: { Authorization: `Bearer ${userInfo.token}` } }
-        );
+        dispatch({ type: 'FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/invoices/admin?page=${page} `, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
-      } catch (error) {
+      } catch (err) {
         dispatch({
           type: 'FETCH_FAIL',
-          payload: getError(error),
+          payload: getError(err),
         });
       }
     };
-    fetchData();
-  }, [page, userInfo]);
+    if (successDelete) {
+      dispatch({ type: 'DELETE_RESET' });
+    } else {
+      fetchData();
+    }
+  }, [page, userInfo, successDelete]);
+
+  const deleteHandler = async (invoice) => {
+    if (window.confirm('Are you sure to delete?')) {
+      try {
+        dispatch({ type: 'DELETE_REQUEST' });
+        await axios.delete(`/api/invoices/${invoice._id}`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        toast.success('invoice deleted successfully');
+        dispatch({ type: 'DELETE_SUCCESS' });
+      } catch (err) {
+        toast.error(getError(error));
+        dispatch({
+          type: 'DELETE_FAIL',
+        });
+      }
+    }
+  };
+
+  const createHandler = async () => {
+    if (window.confirm('Are you sure to create?')) {
+      navigate(`/admin/invoicerBuy`);
+    }
+  };
+
   return (
     <div>
       <Helmet>
-        <title>Invoice History</title>
+        <title>Buy Invoices</title>
       </Helmet>
+      <Row>
+        <Col>
+          <h1>Buy Invoices</h1>
+        </Col>
+        <Col>
+          <SearchBox />
+        </Col>
 
-      <h1>Invoice History</h1>
+        <Col className="col text-end">
+          <div>
+            <Button type="button" onClick={createHandler}>
+              Create Buy Invoice
+            </Button>
+          </div>
+        </Col>
+      </Row>
+
+      {loadingDelete && <LoadingBox></LoadingBox>}
       {loading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
@@ -81,7 +142,7 @@ export default function InvoiceHistoryScreen() {
                 <th>PEDIDO</th>
                 <th>RECIBO</th>
                 <th>FECHA</th>
-                <th>CLIENTE</th>
+                <th>PROVEEDOR</th>
                 <th>PAGADA</th>
                 <th>FORMA PAGO</th>
                 <th>TOTAL</th>
@@ -96,7 +157,11 @@ export default function InvoiceHistoryScreen() {
                   <td>{invoice.ordNum}</td>
                   <td>{invoice.recNum}</td>
                   <td>{invoice.invDat.substring(0, 10)}</td>
-                  <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
+                  <td>
+                    {invoice.supplier
+                      ? invoice.supplier.name
+                      : 'DELETED SUPPLIER'}
+                  </td>
                   <td>
                     {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}
                   </td>
@@ -113,6 +178,14 @@ export default function InvoiceHistoryScreen() {
                     >
                       Details
                     </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      variant="light"
+                      onClick={() => deleteHandler(invoice)}
+                    >
+                      Delete
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -123,7 +196,7 @@ export default function InvoiceHistoryScreen() {
               <Link
                 className={x + 1 === Number(page) ? 'btn text-bold' : 'btn'}
                 key={x + 1}
-                to={`/admin/invoices?page=${x + 1}`}
+                to={`/admin/invoicesBuy?page=${x + 1}`}
               >
                 {x + 1}
               </Link>

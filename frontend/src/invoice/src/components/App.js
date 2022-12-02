@@ -18,6 +18,7 @@ import { Store } from '../../../Store';
 import ReactToPrint from 'react-to-print';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../../../components/LoadingBox';
 import { getError } from '../../../utils';
 
@@ -268,6 +269,10 @@ function App() {
 
   return (
     <>
+      <Helmet>
+        <title>Sale Invoice</title>
+      </Helmet>
+
       <main>
         {!showInvoice ? (
           <>

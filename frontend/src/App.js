@@ -32,6 +32,7 @@ import AdminRoute from './components/AdminRoute';
 import ProductListScreen from './screens/ProductListScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
 import InvoiceListScreen from './screens/InvoiceListScreen';
+import InvoiceBuyListScreen from './screens/InvoiceBuyListScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import SupplierListScreen from './screens/SupplierListScreen';
 import SupplierEditScreen from './screens/SupplierEditScreen';
@@ -145,7 +146,10 @@ function App() {
                         <NavDropdown.Item>Products</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/invoices">
-                        <NavDropdown.Item>Invoicess</NavDropdown.Item>
+                        <NavDropdown.Item>Sales Invoices</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicesBuy">
+                        <NavDropdown.Item>Buy Invoices</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/orders">
                         <NavDropdown.Item>Orders</NavDropdown.Item>
@@ -163,7 +167,7 @@ function App() {
                         <NavDropdown.Item>Configurations</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/invoicer">
-                        <NavDropdown.Item>Sales Invoices</NavDropdown.Item>
+                        <NavDropdown.Item>Sales Invoicer</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/invoicerRec">
                         <NavDropdown.Item>Receipts By Sales</NavDropdown.Item>
@@ -272,6 +276,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <InvoiceListScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicesBuy"
+                element={
+                  <AdminRoute>
+                    <InvoiceBuyListScreen />
                   </AdminRoute>
                 }
               ></Route>

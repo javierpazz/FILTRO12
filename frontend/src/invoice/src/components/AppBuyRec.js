@@ -7,9 +7,9 @@ import Footer from './Footer';
 import Header from './Header';
 import MainDetails from './MainDetails';
 import Notes from './Notes';
-import Table from './Table';
+import TableRec from './TableRec';
 import { toast } from 'react-toastify';
-import TableForm from './TableForm';
+import TableFormRec from './TableFormRec';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
@@ -18,55 +18,30 @@ import { Store } from '../../../Store';
 import ReactToPrint from 'react-to-print';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../../../components/LoadingBox';
 import { getError } from '../../../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        products: action.payload.products,
-        page: action.payload.page,
-        pages: action.payload.pages,
-        loading: false,
-      };
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
-
-    case 'SUPPLIER_FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'SUPPLIER_FETCH_SUCCESS':
-      return {
-        ...state,
-        suppliers: action.payload.supliers,
-        page: action.payload.page,
-        pages: action.payload.pages,
-        loading: false,
-      };
-    case 'SUPPLIER_FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
-
     case 'VALUE_FETCH_REQUEST':
-      return { ...state, loadingVal: true };
+      return { ...state, loading: true };
     case 'VALUE_FETCH_SUCCESS':
       return {
         ...state,
         values: action.payload.values,
         pageVal: action.payload.page,
         pagesVal: action.payload.pages,
-        loadingVal: false,
+        loading: false,
       };
     case 'VALUE_FETCH_FAIL':
-      return { ...state, loadingVal: false, error: action.payload };
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
 };
 
-function App() {
+function AppBuyRec() {
   const [
     {
       loading,
@@ -88,10 +63,10 @@ function App() {
 
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
-    invoice: { invoiceItems },
+    receipt: { receiptItems },
   } = state;
 
-  const { invoice, userInfo, values } = state;
+  const { receipt, userInfo, values } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -101,7 +76,7 @@ function App() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
-  const [desVal, setDesVal] = useState('');
+  const [desval, setDesval] = useState('');
   const [userss, setUserss] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [codSup, setCodSup] = useState('');
@@ -121,11 +96,11 @@ function App() {
   const [desPro, setDesPro] = useState('');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(0);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
   const [width] = useState(641);
-  const [showInvoice, setShowInvoice] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const componentRef = useRef();
   const handlePrint = () => {
@@ -186,94 +161,60 @@ function App() {
   const handleChange = (e) => {
     searchSup(e.target.value);
   };
-
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
     setCodVal(valuesRow.codVal);
-    setDesVal(valuesRow.desVal);
+    setDesval(valuesRow.desVal);
   };
 
   const handleValueChange = (e) => {
     searchValue(e.target.value);
   };
 
-  const placeCancelInvoiceHandler = async () => {};
+  const placeCancelReceiptHandler = async () => {};
 
-  const placeInvoiceHandler = async () => {
-    if (invNum && invDat && codSup) {
-      //    list.map((item) => stockHandler({ item }));
-      invoiceItems.map((item) => stockHandler({ item }));
-
+  const placeReceiptHandler = async () => {
+    if (recNum && recDat && codSup) {
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
-      invoice.itemsPrice = round2(
-        invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
+      receipt.itemsPrice = round2(
+        receipt.receiptItems.reduce((a, c) => a + amount * 1, 0)
       );
-      invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
-      invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
-      invoice.totalPrice =
-        invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
-      invoice.codSup = codSup;
-      invoice.remNum = remNum;
-      invoice.invNum = invNum;
-      invoice.invDat = invDat;
-      invoice.recNum = recNum;
-      invoice.recDat = recDat;
-      invoice.desVal = desVal;
-      invoice.notes = notes;
+      receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
+      receipt.taxPrice = round2(0.15 * 0);
+      receipt.totalPrice = receipt.itemsPrice;
+      receipt.codSup = codSup;
+      receipt.remNum = remNum;
+      receipt.invNum = invNum;
+      receipt.invDat = invDat;
+      receipt.recNum = recNum;
+      receipt.recDat = recDat;
+      receipt.desval = desval;
+      receipt.notes = notes;
 
       orderHandler();
-      setShowInvoice(true);
+      setShowReceipt(true);
       //      handlePrint();
     }
   };
 
   /////////////////////////////////////////////
 
-  const stockHandler = async (item) => {
-    try {
-      dispatch({ type: 'CREATE_REQUEST' });
-      await axios.put(
-        `/api/products/upstock/${item.item._id}`,
-        {
-          quantitys: item.item.quantity,
-        },
-        {
-          headers: {
-            authorization: `Bearer ${userInfo.token}`,
-          },
-        }
-      );
-      dispatch({ type: 'CREATE_SUCCESS' });
-    } catch (err) {
-      dispatch({ type: 'CREATE_FAIL' });
-      toast.error(getError(err));
-    }
-  };
-
   const orderHandler = async () => {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
       const { data } = await axios.post(
-        '/api/invoices',
-
+        '/api/receipts',
         {
-          invoiceItems: invoice.invoiceItems,
-          shippingAddress: invoice.shippingAddress,
-          paymentMethod: invoice.paymentMethod,
-          itemsPrice: invoice.itemsPrice,
-          shippingPrice: invoice.shippingPrice,
-          taxPrice: invoice.taxPrice,
-          totalPrice: invoice.totalPrice,
+          receiptItems: receipt.receiptItems,
+          itemsPrice: receipt.itemsPrice,
+          totalPrice: receipt.totalPrice,
 
-          codSup: invoice.codSup,
+          codSup: receipt.codSup,
 
-          remNum: invoice.remNum,
-          invNum: invoice.invNum,
-          invDat: invoice.invDat,
-          recNum: invoice.recNum,
-          recDat: invoice.recDat,
-          desVal: invoice.desVal,
-          notes: invoice.notes,
+          recNum: receipt.recNum,
+          recDat: receipt.recDat,
+          desval: receipt.desval,
+          notes: receipt.notes,
           salbuy: 'BUY',
         },
         {
@@ -282,9 +223,9 @@ function App() {
           },
         }
       );
-      ctxDispatch({ type: 'INVOICE_CLEAR' });
+      ctxDispatch({ type: 'RECEIPT_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
-      localStorage.removeItem('invoiceItems');
+      localStorage.removeItem('receiptItems');
       //navigate(`/order/${data.order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
@@ -296,10 +237,14 @@ function App() {
 
   return (
     <>
+      <Helmet>
+        <title>Receipt Buy Invoices</title>
+      </Helmet>
+
       <main>
-        {!showInvoice ? (
+        {!showReceipt ? (
           <>
-            {/* name, address, email, phone, bank name, bank account number, website client name, client address, invoice number, invoice date, due date, notes */}
+            {/* name, address, email, phone, bank name, bank account number, website client name, client address, receipt number, receipt date, due date, notes */}
             <div>
               <div className="bordeTable">
                 <Row>
@@ -398,9 +343,9 @@ function App() {
                       <div className="d-grid">
                         <Button
                           type="button"
-                          onClick={placeCancelInvoiceHandler}
+                          onClick={placeCancelReceiptHandler}
                           disabled={
-                            invoiceItems.length === 0 ||
+                            receiptItems.length === 0 ||
                             !recNum ||
                             !recDat ||
                             !codSup
@@ -416,15 +361,15 @@ function App() {
                       <div className="d-grid">
                         <Button
                           type="button"
-                          onClick={placeInvoiceHandler}
+                          onClick={placeReceiptHandler}
                           disabled={
-                            invoiceItems.length === 0 ||
+                            receiptItems.length === 0 ||
                             !recNum ||
                             !recDat ||
                             !codSup
                           }
                         >
-                          Save Receipt Pay
+                          Save Recipt
                         </Button>
                       </div>
                       {loading && <LoadingBox></LoadingBox>}
@@ -436,8 +381,8 @@ function App() {
                           <ListGroup.Item>
                             <h3>
                               Total: $
-                              {invoiceItems.reduce(
-                                (a, c) => a + c.price * c.quantity,
+                              {receiptItems.reduce(
+                                (a, c) => a + c.amount * 1,
                                 0
                               )}
                             </h3>
@@ -450,11 +395,11 @@ function App() {
 
                 {/* This is our table form */}
                 <article>
-                  <TableForm
-                    codPro={codPro}
-                    setCodPro={setCodPro}
-                    desPro={desPro}
-                    setDesPro={setDesPro}
+                  <TableFormRec
+                    codVal={codVal}
+                    setCodVal={setCodVal}
+                    desval={desval}
+                    setDesval={setDesval}
                     quantity={quantity}
                     setQuantity={setQuantity}
                     price={price}
@@ -476,9 +421,9 @@ function App() {
               trigger={() => <Button type="button">Print / Download</Button>}
               content={() => componentRef.current}
             />
-            <Button onClick={() => setShowInvoice(false)}>New Invoice</Button>
+            <Button onClick={() => setShowReceipt(false)}>New Receipt</Button>
 
-            {/* Invoice Preview */}
+            {/* receipt Preview */}
 
             <div ref={componentRef} className="p-5">
               <Header handlePrint={handlePrint} />
@@ -492,13 +437,10 @@ function App() {
 
               <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
 
-              <Table
-                desPro={desPro}
-                quantity={quantity}
-                price={price}
+              <TableRec
+                desval={desval}
                 amount={amount}
-                invoiceItems={invoiceItems}
-                setList={setList}
+                receiptItems={receiptItems}
                 total={total}
                 setTotal={setTotal}
               />
@@ -522,4 +464,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppBuyRec;

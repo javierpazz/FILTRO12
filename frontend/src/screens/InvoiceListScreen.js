@@ -1,13 +1,16 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { toast } from 'react-toastify';
 import Button from 'react-bootstrap/Button';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
+import SearchBox from '../components/SearchBox';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -16,7 +19,9 @@ const reducer = (state, action) => {
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        invoices: action.payload,
+        invoices: action.payload.invoices,
+        page: action.payload.page,
+        pages: action.payload.pages,
         loading: false,
       };
     case 'FETCH_FAIL':
@@ -33,25 +38,68 @@ const reducer = (state, action) => {
       return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
       return { ...state, loadingDelete: false, successDelete: false };
+    case 'TOTAL_FETCH_REQUEST':
+      return { ...state, loading: true };
+    case 'TOTAL_FETCH_SUCCESS':
+      return {
+        ...state,
+        invoicesT: action.payload,
+        loading: false,
+      };
+    case 'TOTAL_FETCH_FAIL':
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
 };
 export default function InvoiceListScreen() {
+  const [
+    {
+      loading,
+      error,
+      invoices,
+      invoicesT,
+      pages,
+      loadingDelete,
+      successDelete,
+    },
+    dispatch,
+  ] = useReducer(reducer, {
+    loading: true,
+    error: '',
+  });
+
   const navigate = useNavigate();
+  const { search } = useLocation();
+  const sp = new URLSearchParams(search);
+  const page = sp.get('page') || 1;
+
   const { state } = useContext(Store);
   const { userInfo } = state;
-  const [{ loading, error, invoices, loadingDelete, successDelete }, dispatch] =
-    useReducer(reducer, {
-      loading: true,
-      error: '',
-    });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        dispatch({ type: 'TOTAL_FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/invoices/`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
+      } catch (err) {
+        dispatch({
+          type: 'TOTAL_FETCH_FAIL',
+          payload: getError(err),
+        });
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices`, {
+        const { data } = await axios.get(`/api/invoices/admin?page=${page} `, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
@@ -67,7 +115,7 @@ export default function InvoiceListScreen() {
     } else {
       fetchData();
     }
-  }, [userInfo, successDelete]);
+  }, [page, userInfo, successDelete]);
 
   const deleteHandler = async (invoice) => {
     if (window.confirm('Are you sure to delete?')) {
@@ -87,69 +135,105 @@ export default function InvoiceListScreen() {
     }
   };
 
+  const createHandler = async () => {
+    if (window.confirm('Are you sure to create?')) {
+      navigate(`/admin/invoicer`);
+    }
+  };
+
   return (
     <div>
       <Helmet>
-        <title>Invoices</title>
+        <title>Sale Invoices</title>
       </Helmet>
-      <h1>Invoices</h1>
+      <Row>
+        <Col>
+          <h1>Sale Invoices</h1>
+        </Col>
+        <Col>
+          <SearchBox />
+        </Col>
+        <Col className="col text-end">
+          <div>
+            <Button type="button" onClick={createHandler}>
+              Create Sale Invoice
+            </Button>
+          </div>
+        </Col>
+      </Row>
+
       {loadingDelete && <LoadingBox></LoadingBox>}
       {loading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
         <MessageBox variant="danger">{error}</MessageBox>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>USER</th>
-              <th>DATE</th>
-              <th>TOTAL</th>
-              <th>PAID</th>
-              <th>DELIVERED</th>
-              <th>ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice) => (
-              <tr key={invoice._id}>
-                <td>{invoice._id}</td>
-                <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
-                <td>{invoice.createdAt.substring(0, 10)}</td>
-                <td>{invoice.totalPrice.toFixed(2)}</td>
-                <td>
-                  {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}
-                </td>
-
-                <td>
-                  {invoice.isDelivered
-                    ? invoice.deliveredAt.substring(0, 10)
-                    : 'No'}
-                </td>
-                <td>
-                  <Button
-                    type="button"
-                    variant="light"
-                    onClick={() => {
-                      navigate(`/invoice/${invoice._id}`);
-                    }}
-                  >
-                    Details
-                  </Button>
-                  &nbsp;
-                  <Button
-                    type="button"
-                    variant="light"
-                    onClick={() => deleteHandler(invoice)}
-                  >
-                    Delete
-                  </Button>
-                </td>
+        <>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>FACTURA</th>
+                <th>REMITO</th>
+                <th>PEDIDO</th>
+                <th>RECIBO</th>
+                <th>FECHA</th>
+                <th>CLIENTE</th>
+                <th>PAGADA</th>
+                <th>FORMA PAGO</th>
+                <th>TOTAL</th>
+                <th>ACCIONES</th>
               </tr>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice._id}>
+                  <td>{invoice.invNum}</td>
+                  <td>{invoice.remNum}</td>
+                  <td>{invoice.ordNum}</td>
+                  <td>{invoice.recNum}</td>
+                  <td>{invoice.invDat.substring(0, 10)}</td>
+                  <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
+                  <td>
+                    {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}
+                  </td>
+                  <td>{invoice.desVal}</td>
+                  <td>{invoice.totalPrice.toFixed(2)}</td>
+
+                  <td>
+                    <Button
+                      type="button"
+                      variant="light"
+                      onClick={() => {
+                        navigate(`/invoice/${invoice._id}`);
+                      }}
+                    >
+                      Details
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      variant="light"
+                      onClick={() => deleteHandler(invoice)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            {[...Array(pages).keys()].map((x) => (
+              <Link
+                className={x + 1 === Number(page) ? 'btn text-bold' : 'btn'}
+                key={x + 1}
+                to={`/admin/invoices?page=${x + 1}`}
+              >
+                {x + 1}
+              </Link>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   );

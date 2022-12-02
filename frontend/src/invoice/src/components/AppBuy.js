@@ -18,6 +18,7 @@ import { Store } from '../../../Store';
 import ReactToPrint from 'react-to-print';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../../../components/LoadingBox';
 import { getError } from '../../../utils';
 
@@ -66,7 +67,7 @@ const reducer = (state, action) => {
   }
 };
 
-function App() {
+function AppBuy() {
   const [
     {
       loading,
@@ -296,6 +297,10 @@ function App() {
 
   return (
     <>
+      <Helmet>
+        <title>Buy Invoice</title>
+      </Helmet>
+
       <main>
         {!showInvoice ? (
           <>
@@ -614,4 +619,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppBuy;
