@@ -2,6 +2,13 @@ import axios from 'axios';
 import React, { useContext, useEffect, useReducer } from 'react';
 import { toast } from 'react-toastify';
 import Button from 'react-bootstrap/Button';
+import {
+  AiOutlineDelete,
+  AiOutlineEdit,
+  AiFillPrinter,
+  AiOutlineMail,
+} from 'react-icons/ai';
+
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
@@ -63,7 +70,7 @@ export default function InvoiceListScreen() {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices/admin?page=${page} `, {
+        const { data } = await axios.get(`/api/invoices/adminB?page=${page} `, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
@@ -114,6 +121,10 @@ export default function InvoiceListScreen() {
         <Col>
           <h1>Buy Invoices</h1>
         </Col>
+        <Col>
+          <h3>Total: ${invoices?.reduce((a, c) => a + c.totalPrice * 1, 0)}</h3>
+        </Col>
+
         <Col>
           <SearchBox />
         </Col>
@@ -171,20 +182,40 @@ export default function InvoiceListScreen() {
                   <td>
                     <Button
                       type="button"
-                      variant="light"
+                      title="Imprimir"
                       onClick={() => {
                         navigate(`/invoice/${invoice._id}`);
                       }}
                     >
-                      Details
+                      <AiFillPrinter className="text-black-500 font-bold text-xl" />
                     </Button>
                     &nbsp;
                     <Button
                       type="button"
-                      variant="light"
+                      title="Send Email"
+                      onClick={() => {
+                        navigate(`/invoice/${invoice._id}`);
+                      }}
+                    >
+                      <AiOutlineMail className="text-black-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Cambiar Nro. Remito o Factura"
+                      onClick={() => {
+                        navigate(`/invoice/${invoice._id}`);
+                      }}
+                    >
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Delete"
                       onClick={() => deleteHandler(invoice)}
                     >
-                      Delete
+                      <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
                   </td>
                 </tr>

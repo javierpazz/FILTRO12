@@ -2,6 +2,13 @@ import axios from 'axios';
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { toast } from 'react-toastify';
 import Button from 'react-bootstrap/Button';
+import {
+  AiOutlineDelete,
+  AiOutlineEdit,
+  AiFillPrinter,
+  AiOutlineMail,
+} from 'react-icons/ai';
+
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
@@ -38,31 +45,13 @@ const reducer = (state, action) => {
       return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
       return { ...state, loadingDelete: false, successDelete: false };
-    case 'TOTAL_FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'TOTAL_FETCH_SUCCESS':
-      return {
-        ...state,
-        invoicesT: action.payload,
-        loading: false,
-      };
-    case 'TOTAL_FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
 };
 export default function InvoiceListScreen() {
   const [
-    {
-      loading,
-      error,
-      invoices,
-      invoicesT,
-      pages,
-      loadingDelete,
-      successDelete,
-    },
+    { loading, error, invoices, pages, loadingDelete, successDelete },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
@@ -76,33 +65,17 @@ export default function InvoiceListScreen() {
 
   const { state } = useContext(Store);
   const { userInfo } = state;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'TOTAL_FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices/`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
-      } catch (err) {
-        dispatch({
-          type: 'TOTAL_FETCH_FAIL',
-          payload: getError(err),
-        });
-      }
-    };
-    fetchData();
-  }, []);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         dispatch({ type: 'FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices/admin?page=${page} `, {
+        const { data } = await axios.get(`/api/invoices/adminS?page=${page} `, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
+        calculatotal();
       } catch (err) {
         dispatch({
           type: 'FETCH_FAIL',
@@ -135,6 +108,12 @@ export default function InvoiceListScreen() {
     }
   };
 
+  const calculatotal = () => {
+    let tot = 0;
+    invoices?.map((inv) => (tot = tot + inv.priceTotal));
+    setTotal(tot);
+  };
+
   const createHandler = async () => {
     if (window.confirm('Are you sure to create?')) {
       navigate(`/admin/invoicer`);
@@ -151,8 +130,12 @@ export default function InvoiceListScreen() {
           <h1>Sale Invoices</h1>
         </Col>
         <Col>
+          <h3>Total: ${invoices?.reduce((a, c) => a + c.totalPrice * 1, 0)}</h3>
+        </Col>
+        <Col>
           <SearchBox />
         </Col>
+
         <Col className="col text-end">
           <div>
             <Button type="button" onClick={createHandler}>
@@ -202,20 +185,40 @@ export default function InvoiceListScreen() {
                   <td>
                     <Button
                       type="button"
-                      variant="light"
+                      title="Imprimir"
                       onClick={() => {
                         navigate(`/invoice/${invoice._id}`);
                       }}
                     >
-                      Details
+                      <AiFillPrinter className="text-black-500 font-bold text-xl" />
                     </Button>
                     &nbsp;
                     <Button
                       type="button"
-                      variant="light"
+                      title="Send Email"
+                      onClick={() => {
+                        navigate(`/invoice/${invoice._id}`);
+                      }}
+                    >
+                      <AiOutlineMail className="text-black-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Cambiar Nro. Remito o Factura"
+                      onClick={() => {
+                        navigate(`/invoice/${invoice._id}`);
+                      }}
+                    >
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Delete"
                       onClick={() => deleteHandler(invoice)}
                     >
-                      Delete
+                      <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
                   </td>
                 </tr>

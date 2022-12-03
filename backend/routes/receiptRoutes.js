@@ -17,6 +17,56 @@ receiptRouter.get(
   })
 );
 
+const PAGE_SIZE = 3;
+
+receiptRouter.get(
+  '/adminB',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const receipts = await Receipt.find({ salbuy: 'BUY' })
+      .populate('user', 'name')
+      .populate('supplier', 'name')
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countReceipts = await Receipt.countDocuments();
+    res.send({
+      receipts,
+      countReceipts,
+      page,
+      pages: Math.ceil(countReceipts / pageSize),
+    });
+  })
+);
+
+receiptRouter.get(
+  '/adminS',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const receipts = await Receipt.find({ salbuy: 'SALE' })
+      .populate('user', 'name')
+      .populate('supplier', 'name')
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countReceipts = await Receipt.countDocuments();
+    res.send({
+      receipts,
+      countReceipts,
+      page,
+      pages: Math.ceil(countReceipts / pageSize),
+    });
+  })
+);
+
 receiptRouter.post(
   '/',
   isAuth,

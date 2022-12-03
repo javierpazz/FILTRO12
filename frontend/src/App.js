@@ -33,6 +33,8 @@ import ProductListScreen from './screens/ProductListScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
 import InvoiceListScreen from './screens/InvoiceListScreen';
 import InvoiceBuyListScreen from './screens/InvoiceBuyListScreen';
+import ReceiptListScreen from './screens/ReceiptListScreen';
+import ReceiptBuyListScreen from './screens/ReceiptBuyListScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import SupplierListScreen from './screens/SupplierListScreen';
 import SupplierEditScreen from './screens/SupplierEditScreen';
@@ -150,6 +152,12 @@ function App() {
                       </LinkContainer>
                       <LinkContainer to="/admin/invoicesBuy">
                         <NavDropdown.Item>Buy Invoices</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicesRec">
+                        <NavDropdown.Item>Receipts Sales</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/invoicesBuyRec">
+                        <NavDropdown.Item>Receipt Buys</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/orders">
                         <NavDropdown.Item>Orders</NavDropdown.Item>
@@ -284,6 +292,22 @@ function App() {
                 element={
                   <AdminRoute>
                     <InvoiceBuyListScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicesRec"
+                element={
+                  <AdminRoute>
+                    <ReceiptListScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicesBuyRec"
+                element={
+                  <AdminRoute>
+                    <ReceiptBuyListScreen />
                   </AdminRoute>
                 }
               ></Route>

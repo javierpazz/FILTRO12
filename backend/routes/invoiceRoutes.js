@@ -20,7 +20,7 @@ invoiceRouter.get(
 const PAGE_SIZE = 3;
 
 invoiceRouter.get(
-  '/admin',
+  '/adminS',
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
@@ -28,7 +28,33 @@ invoiceRouter.get(
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE;
 
-    const invoices = await Invoice.find()
+    const invoices = await Invoice.find({ salbuy: 'SALE' })
+      .populate('user', 'name')
+      .populate('supplier', 'name')
+      .skip(pageSize * (page - 1))
+      .limit(pageSize);
+    const countInvoices = await Invoice.countDocuments();
+    res.send({
+      invoices,
+      countInvoices,
+      page,
+      pages: Math.ceil(countInvoices / pageSize),
+    });
+  })
+);
+
+invoiceRouter.get(
+  '/adminB',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const { query } = req;
+    const page = query.page || 1;
+    const pageSize = query.pageSize || PAGE_SIZE;
+
+    const invoices = await Invoice.find({ salbuy: 'BUY' })
+      .populate('user', 'name')
+      .populate('supplier', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countInvoices = await Invoice.countDocuments();
