@@ -8,11 +8,50 @@ import { isAuth, isAdmin, mailgun, payInvoiceEmailTemplate } from '../utils.js';
 const invoiceRouter = express.Router();
 
 invoiceRouter.get(
+  '/S',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const invoices = await Invoice.find({ salbuy: 'SALE' }).populate(
+      'user',
+      'name'
+    );
+    res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
+  '/B',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const invoices = await Invoice.find({ salbuy: 'BUY' }).populate(
+      'user',
+      'name'
+    );
+    res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
   '/',
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const invoices = await Invoice.find().populate('user', 'name');
+    const invoices = await Invoice.aggregate([
+      { $unwind: '$invoiceItems' },
+      { $match: {} },
+      {
+        $project: {
+          total: '$totalPrice',
+          fecha: '$invDat',
+          cliente: '$user',
+          producto: '$invoiceItems.name',
+          cantidad: '$invoiceItems.quantity',
+          precio: '$invoiceItems.price',
+        },
+      },
+    ]);
     res.send(invoices);
   })
 );
@@ -33,7 +72,7 @@ invoiceRouter.get(
       .populate('supplier', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countInvoices = await Invoice.countDocuments();
+    const countInvoices = await Invoice.countDocuments({ salbuy: 'SALE' });
     res.send({
       invoices,
       countInvoices,
@@ -57,7 +96,7 @@ invoiceRouter.get(
       .populate('supplier', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countInvoices = await Invoice.countDocuments();
+    const countInvoices = await Invoice.countDocuments({ salbuy: 'BUY' });
     res.send({
       invoices,
       countInvoices,

@@ -16,6 +16,31 @@ receiptRouter.get(
     res.send(receipts);
   })
 );
+receiptRouter.get(
+  '/S',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const receipts = await Receipt.find({ salbuy: 'SALE' }).populate(
+      'user',
+      'name'
+    );
+    res.send(receipts);
+  })
+);
+
+receiptRouter.get(
+  '/B',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const receipts = await Receipt.find({ salbuy: 'SALE' }).populate(
+      'user',
+      'name'
+    );
+    res.send(receipts);
+  })
+);
 
 const PAGE_SIZE = 3;
 
@@ -33,7 +58,7 @@ receiptRouter.get(
       .populate('supplier', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countReceipts = await Receipt.countDocuments();
+    const countReceipts = await Receipt.countDocuments({ salbuy: 'BUY' });
     res.send({
       receipts,
       countReceipts,
@@ -57,7 +82,7 @@ receiptRouter.get(
       .populate('supplier', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countReceipts = await Receipt.countDocuments();
+    const countReceipts = await Receipt.countDocuments({ salbuy: 'SALE' });
     res.send({
       receipts,
       countReceipts,
@@ -82,7 +107,7 @@ receiptRouter.post(
       supplier: req.body.codSup,
       recNum: req.body.recNum,
       recDat: req.body.recDat,
-      desval: req.body.desval,
+      desVal: req.body.desVal,
       notes: req.body.notes,
       salbuy: req.body.salbuy,
     });

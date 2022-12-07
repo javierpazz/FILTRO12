@@ -35,8 +35,8 @@ export default function TableFormRec({
   setCodVal,
   desval,
   setDesval,
-  quantity,
-  setQuantity,
+  numval,
+  setNumval,
   amount,
   setAmount,
   list,
@@ -69,7 +69,6 @@ export default function TableFormRec({
   const [isEditing, setIsEditing] = useState(false);
   const [valuees, setValuees] = useState([]);
   const [valueeR, setValueeR] = useState('');
-  const [numval, setNumval] = useState('');
   const [stock, setStock] = useState(0);
 
   useEffect(() => {
@@ -238,7 +237,7 @@ export default function TableFormRec({
               <tr className="h-10">
                 <td>{itemVal._id}</td>
                 <td>{itemVal.desval}</td>
-                <td>{itemVal.numval}</td>
+                <td>{itemVal.quantity}</td>
                 <td>{itemVal.amount}</td>
                 <td>
                   <Button

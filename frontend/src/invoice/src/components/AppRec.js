@@ -163,7 +163,7 @@ function AppRec() {
     if (recNum && recDat && codUse) {
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
       receipt.itemsPrice = round2(
-        receipt.receiptItems.reduce((a, c) => a + amount * 1, 0)
+        receipt.receiptItems.reduce((a, c) => a + c.amount * 1, 0)
       );
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
       receipt.taxPrice = round2(0.15 * 0);

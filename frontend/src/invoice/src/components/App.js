@@ -77,9 +77,10 @@ function App() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
     invoice: { invoiceItems },
+    receipt: { receiptItems },
   } = state;
 
-  const { invoice, userInfo, values } = state;
+  const { invoice, receipt, userInfo, values } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -89,7 +90,12 @@ function App() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
+  const [codval, setCodval] = useState('');
+  const [desval, setDesval] = useState('');
+  const [valueeR, setValueeR] = useState('');
+  const [valuee, setValuee] = useState('');
   const [desVal, setDesVal] = useState('');
+  const [numval, setNumval] = useState('');
   const [userss, setUserss] = useState([]);
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
@@ -108,8 +114,10 @@ function App() {
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountval, setAmountval] = useState(0);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totInvwithTax, setTotInvwithTax] = useState(0);
   const [width] = useState(641);
   const [showInvoice, setShowInvoice] = useState(false);
 
@@ -117,6 +125,12 @@ function App() {
   const handlePrint = () => {
     window.print();
   };
+
+  //  useEffect(() => {
+  //    setAmountval(invoiceItems?.reduce((a, c) => a + c.price * c.quantity, 0));
+  //
+  //    addToCartHandler(valueeR, amountval);
+  //  }, [valueeR, invoiceItems]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -162,8 +176,15 @@ function App() {
 
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
+    setValueeR(valuesRow);
     setCodVal(valuesRow.codVal);
+    setCodval(valuesRow.codVal);
     setDesVal(valuesRow.desVal);
+    setDesval(valuesRow.desVal);
+    addToCartHandler(valueeR);
+    //    console.log(desval, amount, numval);
+    //    console.log(itemVal);
+    //  console.log(receiptItems);
   };
 
   const handleValueChange = (e) => {
@@ -191,10 +212,86 @@ function App() {
       invoice.recDat = recDat;
       invoice.desVal = desVal;
       invoice.notes = notes;
+      //      addToCartHandler(valueeR);
 
       orderHandler();
+
+      if (recNum && recDat && desVal) {
+        receipt.totalPrice = invoice.totalPrice;
+        receipt.codSup = 0;
+        receipt.recNum = invoice.recNum;
+        receipt.recDat = invoice.recDat;
+        receipt.desVal = invoice.desVal;
+        receipt.notes = invoice.notes;
+        receiptHandler();
+      }
+
       setShowInvoice(true);
       //      handlePrint();
+    }
+  };
+
+  /////////////////////////////////////////////
+
+  const addToCartHandler = (itemVal) => {
+    //    console.log(invoiceItems);
+    //    setAmountval(invoiceItems.reduce((a, c) => a + c.amount * 1, 0));
+    //setAmountval(10000);
+    //  console.log(amountval);
+    console.log(invoiceItems);
+    //      console.log(receiptItems);
+    if (desVal && amountval > 0) {
+      ctxDispatch({
+        type: 'RECEIPT_CLEAR',
+      });
+      localStorage.removeItem('receiptItems');
+      ctxDispatch({
+        type: 'RECEIPT_ADD_ITEM',
+        payload: { ...itemVal, desval, amountval, numval },
+      });
+    }
+  };
+
+  /////////////////////////////////////////////
+
+  const receiptHandler = async () => {
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      const { data } = await axios.post(
+        '/api/receipts',
+        {
+          receiptItems: receipt.receiptItems,
+          shippingAddress: receipt.shippingAddress,
+          paymentMethod: receipt.paymentMethod,
+          itemsPrice: receipt.itemsPrice,
+          shippingPrice: receipt.shippingPrice,
+          taxPrice: receipt.taxPrice,
+          totalPrice: receipt.totalPrice,
+
+          supplier: receipt.codSup,
+
+          remNum: receipt.remNum,
+          invNum: receipt.invNum,
+          invDat: receipt.invDat,
+          recNum: receipt.recNum,
+          recDat: receipt.recDat,
+          desval: receipt.desval,
+          notes: receipt.notes,
+          salbuy: 'SALE',
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      ctxDispatch({ type: 'RECEIPT_CLEAR' });
+      dispatch({ type: 'CREATE_SUCCESS' });
+      localStorage.removeItem('receiptItems');
+      //navigate(`/order/${data.order._id}`);
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
     }
   };
 
@@ -406,7 +503,7 @@ function App() {
                 </Row>
 
                 <Row>
-                  <Col md={3}>
+                  <Col md={2}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -426,7 +523,24 @@ function App() {
                     </Card.Body>
                   </Col>
 
-                  <Col md={3}>
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Value Number</Form.Label>
+                          <Form.Control
+                            className="input"
+                            placeholder="Value Number"
+                            value={numval}
+                            onChange={(e) => setNumval(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+
+                  <Col md={2}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -535,6 +649,11 @@ function App() {
                     setList={setList}
                     total={total}
                     setTotal={setTotal}
+                    valueeR={valueeR}
+                    desval={desval}
+                    numval={numval}
+                    //                    totInvwithTax={totInvwithTax}
+                    //                    setTotInvwithTax={setTotInvwithTax}
                   />
                 </article>
               </div>

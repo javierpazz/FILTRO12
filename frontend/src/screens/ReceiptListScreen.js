@@ -21,8 +21,16 @@ import SearchBox from '../components/SearchBox';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'FETCH_REQUEST':
+    case 'TOTAL_FETCH_REQUEST':
       return { ...state, loading: true };
+    case 'TOTAL_FETCH_SUCCESS':
+      return {
+        ...state,
+        receiptsT: action.payload,
+        loading: false,
+      };
+    case 'TOTAL_FETCH_FAIL':
+      return { ...state, loading: false, error: action.payload };
     case 'FETCH_SUCCESS':
       return {
         ...state,
@@ -51,7 +59,15 @@ const reducer = (state, action) => {
 };
 export default function ReceiptListScreen() {
   const [
-    { loading, error, receipts, pages, loadingDelete, successDelete },
+    {
+      loading,
+      error,
+      receipts,
+      receiptsT,
+      pages,
+      loadingDelete,
+      successDelete,
+    },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
@@ -65,6 +81,24 @@ export default function ReceiptListScreen() {
 
   const { state } = useContext(Store);
   const { userInfo } = state;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        dispatch({ type: 'TOTAL_FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/receipts/S`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
+      } catch (err) {
+        dispatch({
+          type: 'TOTAL_FETCH_FAIL',
+          payload: getError(err),
+        });
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +156,9 @@ export default function ReceiptListScreen() {
           <h1>Sale Receipts</h1>
         </Col>
         <Col>
-          <h3>Total: ${receipts?.reduce((a, c) => a + c.totalPrice * 1, 0)}</h3>
+          <h3>
+            Total: ${receiptsT?.reduce((a, c) => a + c.totalPrice * 1, 0)}
+          </h3>
         </Col>
 
         <Col>
@@ -158,7 +194,7 @@ export default function ReceiptListScreen() {
               </tr>
             </thead>
             <tbody>
-              {receipts.map((receipt) => (
+              {receipts?.map((receipt) => (
                 <tr key={receipt._id}>
                   <td>{receipt.recNum}</td>
                   <td>{receipt.recDat.substring(0, 10)}</td>

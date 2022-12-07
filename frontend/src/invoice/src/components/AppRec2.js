@@ -41,7 +41,7 @@ const reducer = (state, action) => {
   }
 };
 
-function AppBuyRec() {
+function AppRec() {
   const [
     {
       loading,
@@ -78,8 +78,6 @@ function AppBuyRec() {
   const [codVal, setCodVal] = useState('');
   const [desval, setDesval] = useState('');
   const [userss, setUserss] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [codSup, setCodSup] = useState('');
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
   const [codPro1, setCodPro1] = useState('');
@@ -94,7 +92,7 @@ function AppBuyRec() {
   const [dueDat, setDueDat] = useState('');
   const [notes, setNotes] = useState('');
   const [desPro, setDesPro] = useState('');
-  const [quantity, setQuantity] = useState('');
+  const [numval, setNumval] = useState('');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState(0);
   const [list, setList] = useState([]);
@@ -123,19 +121,6 @@ function AppBuyRec() {
   useEffect(() => {
     const fetchDataVal = async () => {
       try {
-        const { data } = await axios.get(`/api/suppliers/`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        setSuppliers(data);
-        dispatch({ type: 'SUPPLIER_FETCH_SUCCESS', payload: data });
-      } catch (err) {}
-    };
-    fetchDataVal();
-  }, []);
-
-  useEffect(() => {
-    const fetchDataVal = async () => {
-      try {
         const { data } = await axios.get(`/api/valuees/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
@@ -152,15 +137,16 @@ function AppBuyRec() {
     }
   }, [width]);
 
-  const searchSup = (codSup) => {
-    const supplierRow = suppliers.find((row) => row._id === codSup);
-    setCodSup(supplierRow._id);
-    setName(supplierRow.name);
+  const searchUser = (codUse) => {
+    const usersRow = userss.find((row) => row._id === codUse);
+    setCodUse(usersRow._id);
+    setName(usersRow.name);
   };
 
   const handleChange = (e) => {
-    searchSup(e.target.value);
+    searchUser(e.target.value);
   };
+
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
     setCodVal(valuesRow.codVal);
@@ -174,15 +160,15 @@ function AppBuyRec() {
   const placeCancelReceiptHandler = async () => {};
 
   const placeReceiptHandler = async () => {
-    if (recNum && recDat && codSup) {
+    if (recNum && recDat && codUse) {
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
       receipt.itemsPrice = round2(
-        receipt.receiptItems.reduce((a, c) => a + c.amount * 1, 0)
+        receipt.receiptItems.reduce((a, c) => a + amount * 1, 0)
       );
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
       receipt.taxPrice = round2(0.15 * 0);
       receipt.totalPrice = receipt.itemsPrice;
-      receipt.codSup = codSup;
+      receipt.codSup = 0;
       receipt.remNum = remNum;
       receipt.invNum = invNum;
       receipt.invDat = invDat;
@@ -206,16 +192,23 @@ function AppBuyRec() {
         '/api/receipts',
         {
           receiptItems: receipt.receiptItems,
+          shippingAddress: receipt.shippingAddress,
+          paymentMethod: receipt.paymentMethod,
           itemsPrice: receipt.itemsPrice,
+          shippingPrice: receipt.shippingPrice,
+          taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
 
-          codSup: receipt.codSup,
+          supplier: receipt.codSup,
 
+          remNum: receipt.remNum,
+          invNum: receipt.invNum,
+          invDat: receipt.invDat,
           recNum: receipt.recNum,
           recDat: receipt.recDat,
           desval: receipt.desval,
           notes: receipt.notes,
-          salbuy: 'BUY',
+          salbuy: 'SALE',
         },
         {
           headers: {
@@ -238,7 +231,7 @@ function AppBuyRec() {
   return (
     <>
       <Helmet>
-        <title>Receipt Buy Invoices</title>
+        <title>Receipt Sale Invoices</title>
       </Helmet>
 
       <main>
@@ -252,28 +245,29 @@ function AppBuyRec() {
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Code</Form.Label>
+                          <Form.Label>User Code</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Supplier Code"
-                            value={codSup}
-                            onChange={(e) => setCodSup(e.target.value)}
+                            placeholder="User Code"
+                            value={codUse}
+                            onChange={(e) => setCodUse(e.target.value)}
                             required
                           />
                         </Form.Group>
                       </Card.Title>
                     </Card.Body>
                   </Col>
+
                   <Col md={8}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Name</Form.Label>
+                          <Form.Label>User Name</Form.Label>
                           <Form.Select
                             className="input"
                             onClick={(e) => handleChange(e)}
                           >
-                            {suppliers.map((elemento) => (
+                            {userss.map((elemento) => (
                               <option key={elemento._id} value={elemento._id}>
                                 {elemento.name}
                               </option>
@@ -348,7 +342,7 @@ function AppBuyRec() {
                             receiptItems.length === 0 ||
                             !recNum ||
                             !recDat ||
-                            !codSup
+                            !codUse
                           }
                         >
                           Cancel
@@ -366,7 +360,7 @@ function AppBuyRec() {
                             receiptItems.length === 0 ||
                             !recNum ||
                             !recDat ||
-                            !codSup
+                            !codUse
                           }
                         >
                           Save Recipt
@@ -400,8 +394,8 @@ function AppBuyRec() {
                     setCodVal={setCodVal}
                     desval={desval}
                     setDesval={setDesval}
-                    quantity={quantity}
-                    setQuantity={setQuantity}
+                    numval={numval}
+                    setNumval={setNumval}
                     price={price}
                     setPrice={setPrice}
                     amount={amount}
@@ -464,4 +458,4 @@ function AppBuyRec() {
   );
 }
 
-export default AppBuyRec;
+export default AppRec;

@@ -45,10 +45,14 @@ export default function TableForm({
   setList,
   total,
   setTotal,
+  valueeR,
+  desval,
+  numval,
 }) {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
     invoice: { invoiceItems },
+    receipt: { receiptItems },
     userInfo,
   } = state;
 
@@ -73,6 +77,8 @@ export default function TableForm({
   const [productR, setProductR] = useState('');
   const [stock, setStock] = useState(0);
 
+  const [amountval, setAmountval] = useState(0);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -95,11 +101,44 @@ export default function TableForm({
     calculateAmount(amount);
   }, [codPro, amount, price, quantity, setAmount]);
 
+  useEffect(() => {
+    const calculateAmountval = (amountval) => {
+      setAmountval(invoiceItems?.reduce((a, c) => a + c.amount * 1, 0));
+    };
+
+    calculateAmountval(amountval);
+  }, [codPro, amountval, price, quantity, setAmountval]);
+
   // Submit form function
   const handleSubmit = (e) => {
     e.preventDefault();
     addToCartHandler();
   };
+
+  /////////////////////////////////////////////
+
+  const addToValueHandler = (itemVal) => {
+    //    setAmountval(invoiceItems?.reduce((a, c) => a + c.amount * 1, 0));
+    //setAmountval(10000);
+
+    // console.log(amountval);
+    // console.log(receiptItems);
+    // console.log(valueeR);
+    // console.log(invoiceItems);
+
+    if (desval && amountval > 0) {
+      ctxDispatch({
+        type: 'RECEIPT_CLEAR',
+      });
+      localStorage.removeItem('receiptItems');
+      ctxDispatch({
+        type: 'RECEIPT_ADD_ITEM',
+        payload: { ...itemVal, desval, amountval, numval },
+      });
+    }
+  };
+
+  /////////////////////////////////////////////
 
   const addToCartHandler = async (itemInv) => {
     if (codPro && quantity > 0) {
@@ -107,6 +146,9 @@ export default function TableForm({
         type: 'INVOICE_ADD_ITEM',
         payload: { ...itemInv, quantity, amount, price },
       });
+      ////
+      addToValueHandler(valueeR);
+      ////
     }
   };
 

@@ -7,9 +7,9 @@ import Footer from './Footer';
 import Header from './Header';
 import MainDetails from './MainDetails';
 import Notes from './Notes';
-import TableRec from './TableRec';
+import Table from './Table';
 import { toast } from 'react-toastify';
-import TableFormRec from './TableFormRec';
+import TableForm from './TableForm';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
@@ -24,24 +24,37 @@ import { getError } from '../../../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'VALUE_FETCH_REQUEST':
+    case 'FETCH_REQUEST':
       return { ...state, loading: true };
+    case 'FETCH_SUCCESS':
+      return {
+        ...state,
+        products: action.payload.products,
+        page: action.payload.page,
+        pages: action.payload.pages,
+        loading: false,
+      };
+    case 'FETCH_FAIL':
+      return { ...state, loading: false, error: action.payload };
+
+    case 'VALUE_FETCH_REQUEST':
+      return { ...state, loadingVal: true };
     case 'VALUE_FETCH_SUCCESS':
       return {
         ...state,
         values: action.payload.values,
         pageVal: action.payload.page,
         pagesVal: action.payload.pages,
-        loading: false,
+        loadingVal: false,
       };
     case 'VALUE_FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, loadingVal: false, error: action.payload };
     default:
       return state;
   }
 };
 
-function AppBuyRec() {
+function App() {
   const [
     {
       loading,
@@ -63,10 +76,11 @@ function AppBuyRec() {
 
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
+    invoice: { invoiceItems },
     receipt: { receiptItems },
   } = state;
 
-  const { receipt, userInfo, values } = state;
+  const { invoice, receipt, userInfo, values } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -76,10 +90,13 @@ function AppBuyRec() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
+  const [codval, setCodval] = useState('');
   const [desval, setDesval] = useState('');
+  const [valueeR, setValueeR] = useState('');
+  const [valuee, setValuee] = useState('');
+  const [desVal, setDesVal] = useState('');
+  const [numVal, setNumVal] = useState('');
   const [userss, setUserss] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [codSup, setCodSup] = useState('');
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
   const [codPro1, setCodPro1] = useState('');
@@ -95,12 +112,13 @@ function AppBuyRec() {
   const [notes, setNotes] = useState('');
   const [desPro, setDesPro] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [numval, setNumval] = useState('');
   const [price, setPrice] = useState('');
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState('');
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
   const [width] = useState(641);
-  const [showReceipt, setShowReceipt] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   const componentRef = useRef();
   const handlePrint = () => {
@@ -123,19 +141,6 @@ function AppBuyRec() {
   useEffect(() => {
     const fetchDataVal = async () => {
       try {
-        const { data } = await axios.get(`/api/suppliers/`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        setSuppliers(data);
-        dispatch({ type: 'SUPPLIER_FETCH_SUCCESS', payload: data });
-      } catch (err) {}
-    };
-    fetchDataVal();
-  }, []);
-
-  useEffect(() => {
-    const fetchDataVal = async () => {
-      try {
         const { data } = await axios.get(`/api/valuees/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
@@ -152,70 +157,115 @@ function AppBuyRec() {
     }
   }, [width]);
 
-  const searchSup = (codSup) => {
-    const supplierRow = suppliers.find((row) => row._id === codSup);
-    setCodSup(supplierRow._id);
-    setName(supplierRow.name);
+  const searchUser = (codUse) => {
+    const usersRow = userss.find((row) => row._id === codUse);
+    setCodUse(usersRow._id);
+    setName(usersRow.name);
   };
 
   const handleChange = (e) => {
-    searchSup(e.target.value);
+    searchUser(e.target.value);
   };
+
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
+    setValueeR(valuesRow);
     setCodVal(valuesRow.codVal);
+    setCodval(valuesRow.codVal);
+    setDesVal(valuesRow.desVal);
     setDesval(valuesRow.desVal);
+    addToCartHandler(valueeR);
+    console.log(desval, amount, numval);
+    //    console.log(itemVal);
+    console.log(receiptItems);
   };
 
   const handleValueChange = (e) => {
     searchValue(e.target.value);
   };
 
-  const placeCancelReceiptHandler = async () => {};
+  const placeCancelInvoiceHandler = async () => {};
 
-  const placeReceiptHandler = async () => {
-    if (recNum && recDat && codSup) {
+  const placeInvoiceHandler = async () => {
+    if (invNum && invDat && codUse) {
+      invoiceItems.map((item) => stockHandler({ item }));
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
-      receipt.itemsPrice = round2(
-        receipt.receiptItems.reduce((a, c) => a + c.amount * 1, 0)
+      invoice.itemsPrice = round2(
+        invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
       );
-      receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
-      receipt.taxPrice = round2(0.15 * 0);
-      receipt.totalPrice = receipt.itemsPrice;
-      receipt.codSup = codSup;
-      receipt.remNum = remNum;
-      receipt.invNum = invNum;
-      receipt.invDat = invDat;
-      receipt.recNum = recNum;
-      receipt.recDat = recDat;
-      receipt.desval = desval;
-      receipt.notes = notes;
+      invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
+      invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
+      invoice.totalPrice =
+        invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+      invoice.codSup = 0;
+      invoice.remNum = remNum;
+      invoice.invNum = invNum;
+      invoice.invDat = invDat;
+      invoice.recNum = recNum;
+      invoice.recDat = recDat;
+      invoice.desVal = desVal;
+      invoice.numval = numval;
+      invoice.notes = notes;
 
       orderHandler();
-      setShowReceipt(true);
+
+      if (recNum && recDat && desVal) {
+        receipt.totalPrice = invoice.totalPrice;
+        setAmount(invoice.totalPrice);
+        receipt.codSup = 0;
+        receipt.recNum = invoice.recNum;
+        receipt.recDat = invoice.recDat;
+        receipt.desVal = invoice.desVal;
+        receipt.notes = invoice.notes;
+        receiptHandler();
+      }
+
+      setShowInvoice(true);
       //      handlePrint();
     }
   };
 
   /////////////////////////////////////////////
 
-  const orderHandler = async () => {
+  const addToCartHandler = async (itemVal) => {
+    if (desVal && amount > 0) {
+      ctxDispatch({
+        type: 'RECEIPT_CLEAR',
+      });
+      localStorage.removeItem('receiptItems');
+      ctxDispatch({
+        type: 'RECEIPT_ADD_ITEM',
+        payload: { ...itemVal, desval, numval, amount },
+      });
+    }
+  };
+
+  /////////////////////////////////////////////
+
+  const receiptHandler = async () => {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
       const { data } = await axios.post(
         '/api/receipts',
         {
           receiptItems: receipt.receiptItems,
+          shippingAddress: receipt.shippingAddress,
+          paymentMethod: receipt.paymentMethod,
           itemsPrice: receipt.itemsPrice,
+          shippingPrice: receipt.shippingPrice,
+          taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
 
-          codSup: receipt.codSup,
+          supplier: receipt.codSup,
 
+          remNum: receipt.remNum,
+          invNum: receipt.invNum,
+          invDat: receipt.invDat,
           recNum: receipt.recNum,
           recDat: receipt.recDat,
           desval: receipt.desval,
           notes: receipt.notes,
-          salbuy: 'BUY',
+          salbuy: 'SALE',
         },
         {
           headers: {
@@ -235,16 +285,84 @@ function AppBuyRec() {
 
   /////////////////////////////////////////////
 
+  const stockHandler = async (item) => {
+    // console.log(item.item._id);
+
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      await axios.put(
+        `/api/products/downstock/${item.item._id}`,
+        {
+          quantitys: item.item.quantity,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      dispatch({ type: 'CREATE_SUCCESS' });
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
+    }
+  };
+
+  const orderHandler = async () => {
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      const { data } = await axios.post(
+        '/api/invoices',
+
+        {
+          invoiceItems: invoice.invoiceItems,
+          shippingAddress: invoice.shippingAddress,
+          paymentMethod: invoice.paymentMethod,
+          itemsPrice: invoice.itemsPrice,
+          shippingPrice: invoice.shippingPrice,
+          taxPrice: invoice.taxPrice,
+          totalPrice: invoice.totalPrice,
+
+          supplier: invoice.codSup,
+
+          remNum: invoice.remNum,
+          invNum: invoice.invNum,
+          invDat: invoice.invDat,
+          recNum: invoice.recNum,
+          recDat: invoice.recDat,
+          desVal: invoice.desVal,
+          numval: invoice.numval,
+          notes: invoice.notes,
+          salbuy: 'SALE',
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      ctxDispatch({ type: 'INVOICE_CLEAR' });
+      dispatch({ type: 'CREATE_SUCCESS' });
+      localStorage.removeItem('invoiceItems');
+      //navigate(`/order/${data.order._id}`);
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
+    }
+  };
+
+  /////////////////////////////////////////////
+
   return (
     <>
       <Helmet>
-        <title>Receipt Buy Invoices</title>
+        <title>Sale Invoice</title>
       </Helmet>
 
       <main>
-        {!showReceipt ? (
+        {!showInvoice ? (
           <>
-            {/* name, address, email, phone, bank name, bank account number, website client name, client address, receipt number, receipt date, due date, notes */}
+            {/* name, address, email, phone, bank name, bank account number, website client name, client address, invoice number, invoice date, due date, notes */}
             <div>
               <div className="bordeTable">
                 <Row>
@@ -252,28 +370,29 @@ function AppBuyRec() {
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Code</Form.Label>
+                          <Form.Label>User Code</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Supplier Code"
-                            value={codSup}
-                            onChange={(e) => setCodSup(e.target.value)}
+                            placeholder="User Code"
+                            value={codUse}
+                            onChange={(e) => setCodUse(e.target.value)}
                             required
                           />
                         </Form.Group>
                       </Card.Title>
                     </Card.Body>
                   </Col>
+
                   <Col md={8}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Name</Form.Label>
+                          <Form.Label>User Name</Form.Label>
                           <Form.Select
                             className="input"
                             onClick={(e) => handleChange(e)}
                           >
-                            {suppliers.map((elemento) => (
+                            {userss.map((elemento) => (
                               <option key={elemento._id} value={elemento._id}>
                                 {elemento.name}
                               </option>
@@ -290,6 +409,57 @@ function AppBuyRec() {
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
+                          <Form.Label>Invoice Number</Form.Label>
+                          <Form.Control
+                            className="input"
+                            placeholder="Invoice Number"
+                            value={invNum}
+                            onChange={(e) => setInvNum(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+
+                  <Col md={3}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Invoice Date</Form.Label>
+                          <Form.Control
+                            className="input"
+                            type="date"
+                            placeholder="Invoice Date"
+                            value={invDat}
+                            onChange={(e) => setInvDat(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Due Date</Form.Label>
+                          <Form.Control
+                            className="input"
+                            type="date"
+                            placeholder="Due Date"
+                            value={dueDat}
+                            onChange={(e) => setDueDat(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
                           <Form.Label>Receipt Number</Form.Label>
                           <Form.Control
                             className="input"
@@ -302,7 +472,7 @@ function AppBuyRec() {
                       </Card.Title>
                     </Card.Body>
                   </Col>
-                  <Col md={2}>
+                  <Col md={3}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -319,7 +489,63 @@ function AppBuyRec() {
                       </Card.Title>
                     </Card.Body>
                   </Col>
-                  <Col md={8}>
+                </Row>
+
+                <Row>
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Values</Form.Label>
+                          <Form.Select
+                            className="input"
+                            onClick={(e) => handleValueChange(e)}
+                          >
+                            {valuess.map((elementoV) => (
+                              <option key={elementoV._id} value={elementoV._id}>
+                                {elementoV.desVal}
+                              </option>
+                            ))}
+                          </Form.Select>
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Value Number</Form.Label>
+                          <Form.Control
+                            className="input"
+                            placeholder="Value Number"
+                            value={numval}
+                            onChange={(e) => setNumval(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+
+                  <Col md={2}>
+                    <Card.Body>
+                      <Card.Title>
+                        <Form.Group className="input" controlId="name">
+                          <Form.Label>Remit Number</Form.Label>
+                          <Form.Control
+                            className="input"
+                            placeholder="Remit Number"
+                            value={remNum}
+                            onChange={(e) => setRemNum(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                      </Card.Title>
+                    </Card.Body>
+                  </Col>
+                  <Col md={6}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -343,12 +569,13 @@ function AppBuyRec() {
                       <div className="d-grid">
                         <Button
                           type="button"
-                          onClick={placeCancelReceiptHandler}
+                          onClick={placeCancelInvoiceHandler}
                           disabled={
-                            receiptItems.length === 0 ||
-                            !recNum ||
-                            !recDat ||
-                            !codSup
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codUse ||
+                            !desVal
                           }
                         >
                           Cancel
@@ -361,15 +588,16 @@ function AppBuyRec() {
                       <div className="d-grid">
                         <Button
                           type="button"
-                          onClick={placeReceiptHandler}
+                          onClick={placeInvoiceHandler}
                           disabled={
-                            receiptItems.length === 0 ||
-                            !recNum ||
-                            !recDat ||
-                            !codSup
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codUse ||
+                            !desVal
                           }
                         >
-                          Save Recipt
+                          Save Invoice
                         </Button>
                       </div>
                       {loading && <LoadingBox></LoadingBox>}
@@ -381,8 +609,8 @@ function AppBuyRec() {
                           <ListGroup.Item>
                             <h3>
                               Total: $
-                              {receiptItems.reduce(
-                                (a, c) => a + c.amount * 1,
+                              {invoiceItems.reduce(
+                                (a, c) => a + c.price * c.quantity,
                                 0
                               )}
                             </h3>
@@ -395,11 +623,11 @@ function AppBuyRec() {
 
                 {/* This is our table form */}
                 <article>
-                  <TableFormRec
-                    codVal={codVal}
-                    setCodVal={setCodVal}
-                    desval={desval}
-                    setDesval={setDesval}
+                  <TableForm
+                    codPro={codPro}
+                    setCodPro={setCodPro}
+                    desPro={desPro}
+                    setDesPro={setDesPro}
                     quantity={quantity}
                     setQuantity={setQuantity}
                     price={price}
@@ -421,9 +649,9 @@ function AppBuyRec() {
               trigger={() => <Button type="button">Print / Download</Button>}
               content={() => componentRef.current}
             />
-            <Button onClick={() => setShowReceipt(false)}>New Receipt</Button>
+            <Button onClick={() => setShowInvoice(false)}>New Invoice</Button>
 
-            {/* receipt Preview */}
+            {/* Invoice Preview */}
 
             <div ref={componentRef} className="p-5">
               <Header handlePrint={handlePrint} />
@@ -437,10 +665,13 @@ function AppBuyRec() {
 
               <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
 
-              <TableRec
-                desval={desval}
+              <Table
+                desPro={desPro}
+                quantity={quantity}
+                price={price}
                 amount={amount}
-                receiptItems={receiptItems}
+                invoiceItems={invoiceItems}
+                setList={setList}
                 total={total}
                 setTotal={setTotal}
               />
@@ -464,4 +695,4 @@ function AppBuyRec() {
   );
 }
 
-export default AppBuyRec;
+export default App;
