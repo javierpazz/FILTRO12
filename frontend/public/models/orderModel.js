@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-const invoiceSchema = new mongoose.Schema(
+const orderSchema = new mongoose.Schema(
   {
-    invoiceItems: [
+    orderItems: [
       {
         slug: { type: String, required: true },
         name: { type: String, required: true },
@@ -17,11 +17,11 @@ const invoiceSchema = new mongoose.Schema(
       },
     ],
     shippingAddress: {
-      fullName: { type: String },
-      address: { type: String },
-      city: { type: String },
-      postalCode: { type: String },
-      country: { type: String },
+      fullName: { type: String, required: true },
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
       location: {
         lat: Number,
         lng: Number,
@@ -31,40 +31,27 @@ const invoiceSchema = new mongoose.Schema(
         googleAddressId: String,
       },
     },
-    paymentMethod: { type: String },
+    paymentMethod: { type: String, required: true },
     paymentResult: {
       id: String,
       status: String,
       update_time: String,
       email_address: String,
     },
-    itemsPrice: { type: Number },
-    shippingPrice: { type: Number },
-    taxPrice: { type: Number },
-    totalPrice: { type: Number },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    supplier: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Supplier',
-    },
+    itemsPrice: { type: Number, required: true },
+    shippingPrice: { type: Number, required: true },
+    taxPrice: { type: Number, required: true },
+    totalPrice: { type: Number, required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     isPaid: { type: Boolean, default: false },
     paidAt: { type: Date },
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
-    remNum: { type: Number },
-    invNum: { type: Number },
-    invDat: { type: Date },
-    recNum: { type: Number },
-    recDat: { type: Date },
-    desVal: { type: String },
-    ordNum: { type: Number },
-    notes: { type: String },
-    salbuy: { type: String },
   },
   {
     timestamps: true,
   }
 );
 
-const Invoice = mongoose.model('Invoice', invoiceSchema);
-export default Invoice;
+const Order = mongoose.model('Order', orderSchema);
+export default Order;

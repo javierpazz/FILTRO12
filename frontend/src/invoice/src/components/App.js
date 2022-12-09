@@ -93,13 +93,11 @@ function App() {
   const [codval, setCodval] = useState('');
   const [desval, setDesval] = useState('');
   const [valueeR, setValueeR] = useState('');
-  const [valuee, setValuee] = useState('');
   const [desVal, setDesVal] = useState('');
-  const [numval, setNumval] = useState('');
+  const [numval, setNumval] = useState(0);
   const [userss, setUserss] = useState([]);
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
-  const [codPro1, setCodPro1] = useState('');
   const [address, setAddress] = useState('Direccion Usuario');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -117,20 +115,27 @@ function App() {
   const [amountval, setAmountval] = useState(0);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
-  const [totInvwithTax, setTotInvwithTax] = useState(0);
   const [width] = useState(641);
   const [showInvoice, setShowInvoice] = useState(false);
+
+  const [isPaying, setIsPaying] = useState(false);
 
   const componentRef = useRef();
   const handlePrint = () => {
     window.print();
   };
 
-  //  useEffect(() => {
-  //    setAmountval(invoiceItems?.reduce((a, c) => a + c.price * c.quantity, 0));
-  //
-  //    addToCartHandler(valueeR, amountval);
-  //  }, [valueeR, invoiceItems]);
+  useEffect(() => {
+    const calculateAmountval = (amountval) => {
+      setAmountval(
+        invoiceItems?.reduce((a, c) => a + c.quantity * c.price, 0) * 1.15
+      );
+    };
+    setCodUse(codUse);
+    setDesVal(desVal);
+    calculateAmountval(amountval);
+    addToCartHandler(valueeR);
+  }, [invoiceItems, numval, desval]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -181,10 +186,6 @@ function App() {
     setCodval(valuesRow.codVal);
     setDesVal(valuesRow.desVal);
     setDesval(valuesRow.desVal);
-    addToCartHandler(valueeR);
-    //    console.log(desval, amount, numval);
-    //    console.log(itemVal);
-    //  console.log(receiptItems);
   };
 
   const handleValueChange = (e) => {
@@ -204,7 +205,12 @@ function App() {
       invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
       invoice.totalPrice =
         invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
-      invoice.codSup = 0;
+      invoice.codUse = codUse;
+      console.log(codUse);
+      console.log('INVOICEcodUse');
+      console.log(invoice.codUse);
+
+      invoice.codSup = '0';
       invoice.remNum = remNum;
       invoice.invNum = invNum;
       invoice.invDat = invDat;
@@ -212,20 +218,19 @@ function App() {
       invoice.recDat = recDat;
       invoice.desVal = desVal;
       invoice.notes = notes;
-      //      addToCartHandler(valueeR);
-
-      orderHandler();
 
       if (recNum && recDat && desVal) {
         receipt.totalPrice = invoice.totalPrice;
-        receipt.codSup = 0;
+        receipt.codUse = invoice.codUse;
+        receipt.codSup = '0';
         receipt.recNum = invoice.recNum;
         receipt.recDat = invoice.recDat;
         receipt.desVal = invoice.desVal;
         receipt.notes = invoice.notes;
+
         receiptHandler();
       }
-
+      orderHandler();
       setShowInvoice(true);
       //      handlePrint();
     }
@@ -233,23 +238,15 @@ function App() {
 
   /////////////////////////////////////////////
 
-  const addToCartHandler = (itemVal) => {
-    //    console.log(invoiceItems);
-    //    setAmountval(invoiceItems.reduce((a, c) => a + c.amount * 1, 0));
-    //setAmountval(10000);
-    //  console.log(amountval);
-    console.log(invoiceItems);
-    //      console.log(receiptItems);
-    if (desVal && amountval > 0) {
-      ctxDispatch({
-        type: 'RECEIPT_CLEAR',
-      });
-      localStorage.removeItem('receiptItems');
-      ctxDispatch({
-        type: 'RECEIPT_ADD_ITEM',
-        payload: { ...itemVal, desval, amountval, numval },
-      });
-    }
+  const addToCartHandler = async (itemVal) => {
+    ctxDispatch({
+      type: 'RECEIPT_CLEAR',
+    });
+    localStorage.removeItem('receiptItems');
+    ctxDispatch({
+      type: 'RECEIPT_ADD_ITEM',
+      payload: { ...itemVal, desval, amountval, numval },
+    });
   };
 
   /////////////////////////////////////////////
@@ -268,7 +265,9 @@ function App() {
           taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
 
-          supplier: receipt.codSup,
+          codUse: receipt.codUse,
+
+          //          codSup: receipt.codSup,
 
           remNum: receipt.remNum,
           invNum: receipt.invNum,
@@ -335,7 +334,9 @@ function App() {
           taxPrice: invoice.taxPrice,
           totalPrice: invoice.totalPrice,
 
-          supplier: invoice.codSup,
+          codUse: invoice.codUse,
+
+          //        codSup: invoice.codSup,
 
           remNum: invoice.remNum,
           invNum: invoice.invNum,
@@ -355,6 +356,13 @@ function App() {
       ctxDispatch({ type: 'INVOICE_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
       localStorage.removeItem('invoiceItems');
+      setIsPaying(false);
+      setDesval('');
+      setDesVal('');
+      setRecNum(0);
+      setRecDat('');
+      setNumval(0);
+      setAmountval(0);
       //navigate(`/order/${data.order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
@@ -363,6 +371,17 @@ function App() {
   };
 
   /////////////////////////////////////////////
+  const Paying = () => {
+    setIsPaying(!isPaying);
+    if (isPaying) {
+      setDesval('');
+      setDesVal('');
+      setRecNum(0);
+      setRecDat('');
+      setNumval(0);
+      setAmountval(0);
+    }
+  };
 
   return (
     <>
@@ -416,14 +435,14 @@ function App() {
                 </Row>
 
                 <Row>
-                  <Col md={2}>
+                  <Col md={1}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Invoice Number</Form.Label>
+                          <Form.Label>Invoice N°</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Invoice Number"
+                            placeholder="Invoice N°"
                             value={invNum}
                             onChange={(e) => setInvNum(e.target.value)}
                             required
@@ -433,7 +452,7 @@ function App() {
                     </Card.Body>
                   </Col>
 
-                  <Col md={3}>
+                  <Col md={2}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -467,87 +486,14 @@ function App() {
                       </Card.Title>
                     </Card.Body>
                   </Col>
-                  <Col md={2}>
+                  <Col md={1}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Receipt Number</Form.Label>
+                          <Form.Label>Remit N°</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Receipt Number"
-                            value={recNum}
-                            onChange={(e) => setRecNum(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-                  <Col md={3}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Receipt Date</Form.Label>
-                          <Form.Control
-                            className="input"
-                            type="date"
-                            placeholder="Receipt Date"
-                            value={recDat}
-                            onChange={(e) => setRecDat(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={2}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Values</Form.Label>
-                          <Form.Select
-                            className="input"
-                            onClick={(e) => handleValueChange(e)}
-                          >
-                            {valuess.map((elementoV) => (
-                              <option key={elementoV._id} value={elementoV._id}>
-                                {elementoV.desVal}
-                              </option>
-                            ))}
-                          </Form.Select>
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-
-                  <Col md={2}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Value Number</Form.Label>
-                          <Form.Control
-                            className="input"
-                            placeholder="Value Number"
-                            value={numval}
-                            onChange={(e) => setNumval(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-
-                  <Col md={2}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Remit Number</Form.Label>
-                          <Form.Control
-                            className="input"
-                            placeholder="Remit Number"
+                            placeholder="Remit N°"
                             value={remNum}
                             onChange={(e) => setRemNum(e.target.value)}
                             required
@@ -572,6 +518,106 @@ function App() {
                     </Card.Body>
                   </Col>
                 </Row>
+
+                <div className="bordeTable">
+                  <Row>
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Values</Form.Label>
+                            <Form.Select
+                              className="input"
+                              onClick={(e) => handleValueChange(e)}
+                              disabled={!isPaying}
+                            >
+                              {valuess.map((elementoV) => (
+                                <option
+                                  key={elementoV._id}
+                                  value={elementoV._id}
+                                >
+                                  {elementoV.desVal}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Value N°</Form.Label>
+                            <Form.Control
+                              className="input"
+                              placeholder="Value N°"
+                              value={numval}
+                              onChange={(e) => setNumval(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+                    <Col md={3}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Receipt Date</Form.Label>
+                            <Form.Control
+                              className="input"
+                              type="date"
+                              placeholder="Receipt Date"
+                              value={recDat}
+                              onChange={(e) => setRecDat(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Receipt N°</Form.Label>
+                            <Form.Control
+                              className="input"
+                              placeholder="Receipt N°"
+                              value={recNum}
+                              onChange={(e) => setRecNum(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+                    <Col md={3}>
+                      <div className="d-grid">
+                        <Button
+                          type="button"
+                          onClick={Paying}
+                          className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                          disabled={
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codUse
+                          }
+                        >
+                          {isPaying ? 'Not Payment' : 'Load Payment'}
+                        </Button>
+                      </div>
+                      {loading && <LoadingBox></LoadingBox>}
+                    </Col>
+                  </Row>
+                </div>
               </div>
               <div className="bordeTable">
                 <div className="bordeTableinput">
@@ -585,8 +631,7 @@ function App() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codUse ||
-                            !desVal
+                            !codUse
                           }
                         >
                           Cancel
@@ -604,8 +649,7 @@ function App() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codUse ||
-                            !desVal
+                            !codUse
                           }
                         >
                           Save Invoice
@@ -652,6 +696,7 @@ function App() {
                     valueeR={valueeR}
                     desval={desval}
                     numval={numval}
+                    isPaying={isPaying}
                     //                    totInvwithTax={totInvwithTax}
                     //                    setTotInvwithTax={setTotInvwithTax}
                   />

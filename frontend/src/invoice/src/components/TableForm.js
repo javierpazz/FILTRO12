@@ -45,14 +45,11 @@ export default function TableForm({
   setList,
   total,
   setTotal,
-  valueeR,
-  desval,
-  numval,
+  isPaying,
 }) {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
     invoice: { invoiceItems },
-    receipt: { receiptItems },
     userInfo,
   } = state;
 
@@ -77,8 +74,6 @@ export default function TableForm({
   const [productR, setProductR] = useState('');
   const [stock, setStock] = useState(0);
 
-  const [amountval, setAmountval] = useState(0);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -101,44 +96,11 @@ export default function TableForm({
     calculateAmount(amount);
   }, [codPro, amount, price, quantity, setAmount]);
 
-  useEffect(() => {
-    const calculateAmountval = (amountval) => {
-      setAmountval(invoiceItems?.reduce((a, c) => a + c.amount * 1, 0));
-    };
-
-    calculateAmountval(amountval);
-  }, [codPro, amountval, price, quantity, setAmountval]);
-
   // Submit form function
   const handleSubmit = (e) => {
     e.preventDefault();
     addToCartHandler();
   };
-
-  /////////////////////////////////////////////
-
-  const addToValueHandler = (itemVal) => {
-    //    setAmountval(invoiceItems?.reduce((a, c) => a + c.amount * 1, 0));
-    //setAmountval(10000);
-
-    // console.log(amountval);
-    // console.log(receiptItems);
-    // console.log(valueeR);
-    // console.log(invoiceItems);
-
-    if (desval && amountval > 0) {
-      ctxDispatch({
-        type: 'RECEIPT_CLEAR',
-      });
-      localStorage.removeItem('receiptItems');
-      ctxDispatch({
-        type: 'RECEIPT_ADD_ITEM',
-        payload: { ...itemVal, desval, amountval, numval },
-      });
-    }
-  };
-
-  /////////////////////////////////////////////
 
   const addToCartHandler = async (itemInv) => {
     if (codPro && quantity > 0) {
@@ -146,9 +108,6 @@ export default function TableForm({
         type: 'INVOICE_ADD_ITEM',
         payload: { ...itemInv, quantity, amount, price },
       });
-      ////
-      addToValueHandler(valueeR);
-      ////
     }
   };
 
@@ -198,6 +157,7 @@ export default function TableForm({
                       placeholder="Product Code"
                       value={codPro}
                       onChange={(e) => setCodPro(e.target.value)}
+                      disabled={isPaying}
                       required
                     />
                   </Form.Group>
@@ -214,6 +174,7 @@ export default function TableForm({
                       <Form.Select
                         className="input"
                         onClick={(e) => handleChange(e)}
+                        disabled={isPaying}
                       >
                         {productss.map((elemento) => (
                           <option key={elemento._id} value={elemento._id}>
@@ -238,6 +199,7 @@ export default function TableForm({
                       placeholder="Quantity"
                       value={quantity}
                       onChange={(e) => stockControl(e)}
+                      disabled={isPaying}
                       required
                     />
                   </Form.Group>
@@ -255,6 +217,7 @@ export default function TableForm({
                       placeholder="Price"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
+                      disabled={isPaying}
                       required
                     />
                   </Form.Group>
@@ -280,6 +243,7 @@ export default function TableForm({
                     <Button
                       onClick={() => addToCartHandler(productR)}
                       className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                      disabled={isPaying}
                     >
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
                     </Button>
@@ -316,6 +280,7 @@ export default function TableForm({
                   <Button
                     className="mt-0 mb-0 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
                     onClick={() => removeItemHandler(itemInv)}
+                    disabled={isPaying}
                   >
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                   </Button>

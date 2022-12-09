@@ -90,9 +90,10 @@ function AppBuy() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
     invoice: { invoiceItems },
+    receipt: { receiptItems },
   } = state;
 
-  const { invoice, userInfo, values } = state;
+  const { invoice, receipt, userInfo, values } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -102,7 +103,10 @@ function AppBuy() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
+  const [desval, setDesval] = useState('');
+  const [valueeR, setValueeR] = useState('');
   const [desVal, setDesVal] = useState('');
+  const [numval, setNumval] = useState('');
   const [userss, setUserss] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [codSup, setCodSup] = useState('');
@@ -123,15 +127,30 @@ function AppBuy() {
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountval, setAmountval] = useState(0);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
   const [width] = useState(641);
   const [showInvoice, setShowInvoice] = useState(false);
 
+  const [isPaying, setIsPaying] = useState(false);
+
   const componentRef = useRef();
   const handlePrint = () => {
     window.print();
   };
+
+  useEffect(() => {
+    const calculateAmountval = (amountval) => {
+      setAmountval(
+        invoiceItems?.reduce((a, c) => a + c.quantity * c.price, 0) * 1.15
+      );
+    };
+    setCodUse(codSup);
+    setDesVal(desVal);
+    calculateAmountval(amountval);
+    addToCartHandler(valueeR);
+  }, [invoiceItems, numval, desval]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,8 +209,11 @@ function AppBuy() {
 
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
+    setValueeR(valuesRow);
     setCodVal(valuesRow.codVal);
     setDesVal(valuesRow.desVal);
+    setDesVal(valuesRow.desVal);
+    setDesval(valuesRow.desVal);
   };
 
   const handleValueChange = (e) => {
@@ -222,9 +244,78 @@ function AppBuy() {
       invoice.desVal = desVal;
       invoice.notes = notes;
 
+      if (recNum && recDat && desVal) {
+        receipt.totalPrice = invoice.totalPrice;
+        receipt.codSup = invoice.codSup;
+        receipt.recNum = invoice.recNum;
+        receipt.recDat = invoice.recDat;
+        receipt.desVal = invoice.desVal;
+        receipt.notes = invoice.notes;
+
+        receiptHandler();
+      }
+
       orderHandler();
       setShowInvoice(true);
       //      handlePrint();
+    }
+  };
+
+  /////////////////////////////////////////////
+
+  const addToCartHandler = async (itemVal) => {
+    ctxDispatch({
+      type: 'RECEIPT_CLEAR',
+    });
+    localStorage.removeItem('receiptItems');
+    ctxDispatch({
+      type: 'RECEIPT_ADD_ITEM',
+      payload: { ...itemVal, desval, amountval, numval },
+    });
+  };
+
+  /////////////////////////////////////////////
+
+  const receiptHandler = async () => {
+    try {
+      dispatch({ type: 'CREATE_REQUEST' });
+      const { data } = await axios.post(
+        '/api/receipts',
+        {
+          receiptItems: receipt.receiptItems,
+          shippingAddress: receipt.shippingAddress,
+          paymentMethod: receipt.paymentMethod,
+          itemsPrice: receipt.itemsPrice,
+          shippingPrice: receipt.shippingPrice,
+          taxPrice: receipt.taxPrice,
+          totalPrice: receipt.totalPrice,
+
+          //          codUse: receipt.codUse,
+
+          codSup: receipt.codSup,
+
+          remNum: receipt.remNum,
+          invNum: receipt.invNum,
+          invDat: receipt.invDat,
+          recNum: receipt.recNum,
+          recDat: receipt.recDat,
+          desval: receipt.desval,
+          notes: receipt.notes,
+          salbuy: 'BUY',
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      );
+      ctxDispatch({ type: 'RECEIPT_CLEAR' });
+      dispatch({ type: 'CREATE_SUCCESS' });
+      localStorage.removeItem('receiptItems');
+      //navigate(`/order/${data.order._id}`);
+    } catch (err) {
+      dispatch({ type: 'CREATE_FAIL' });
+      toast.error(getError(err));
     }
   };
 
@@ -286,6 +377,13 @@ function AppBuy() {
       ctxDispatch({ type: 'INVOICE_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
       localStorage.removeItem('invoiceItems');
+      setIsPaying(false);
+      setDesval('');
+      setDesVal('');
+      setRecNum(0);
+      setRecDat('');
+      setNumval(0);
+      setAmountval(0);
       //navigate(`/order/${data.order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
@@ -294,6 +392,17 @@ function AppBuy() {
   };
 
   /////////////////////////////////////////////
+  const Paying = () => {
+    setIsPaying(!isPaying);
+    if (isPaying) {
+      setDesval('');
+      setDesVal('');
+      setRecNum(0);
+      setRecDat('');
+      setNumval(0);
+      setAmountval(0);
+    }
+  };
 
   return (
     <>
@@ -346,14 +455,14 @@ function AppBuy() {
                 </Row>
 
                 <Row>
-                  <Col md={2}>
+                  <Col md={1}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Invoice Number</Form.Label>
+                          <Form.Label>Invoice N°</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Invoice Number"
+                            placeholder="Invoice N°"
                             value={invNum}
                             onChange={(e) => setInvNum(e.target.value)}
                             required
@@ -363,7 +472,7 @@ function AppBuy() {
                     </Card.Body>
                   </Col>
 
-                  <Col md={3}>
+                  <Col md={2}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
@@ -397,70 +506,14 @@ function AppBuy() {
                       </Card.Title>
                     </Card.Body>
                   </Col>
-                  <Col md={2}>
+                  <Col md={1}>
                     <Card.Body>
                       <Card.Title>
                         <Form.Group className="input" controlId="name">
-                          <Form.Label>Receipt Number</Form.Label>
+                          <Form.Label>Remit N°</Form.Label>
                           <Form.Control
                             className="input"
-                            placeholder="Receipt Number"
-                            value={recNum}
-                            onChange={(e) => setRecNum(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-                  <Col md={3}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Receipt Date</Form.Label>
-                          <Form.Control
-                            className="input"
-                            type="date"
-                            placeholder="Receipt Date"
-                            value={recDat}
-                            onChange={(e) => setRecDat(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={3}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Values</Form.Label>
-                          <Form.Select
-                            className="input"
-                            onClick={(e) => handleValueChange(e)}
-                          >
-                            {valuess.map((elementoV) => (
-                              <option key={elementoV._id} value={elementoV._id}>
-                                {elementoV.desVal}
-                              </option>
-                            ))}
-                          </Form.Select>
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
-
-                  <Col md={3}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Remit Number</Form.Label>
-                          <Form.Control
-                            className="input"
-                            placeholder="Remit Number"
+                            placeholder="Remit N°"
                             value={remNum}
                             onChange={(e) => setRemNum(e.target.value)}
                             required
@@ -485,6 +538,106 @@ function AppBuy() {
                     </Card.Body>
                   </Col>
                 </Row>
+
+                <div className="bordeTable">
+                  <Row>
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Values</Form.Label>
+                            <Form.Select
+                              className="input"
+                              onClick={(e) => handleValueChange(e)}
+                              disabled={!isPaying}
+                            >
+                              {valuess.map((elementoV) => (
+                                <option
+                                  key={elementoV._id}
+                                  value={elementoV._id}
+                                >
+                                  {elementoV.desVal}
+                                </option>
+                              ))}
+                            </Form.Select>
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Value N°</Form.Label>
+                            <Form.Control
+                              className="input"
+                              placeholder="Value N°"
+                              value={numval}
+                              onChange={(e) => setNumval(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+                    <Col md={3}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Receipt Date</Form.Label>
+                            <Form.Control
+                              className="input"
+                              type="date"
+                              placeholder="Receipt Date"
+                              value={recDat}
+                              onChange={(e) => setRecDat(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+
+                    <Col md={2}>
+                      <Card.Body>
+                        <Card.Title>
+                          <Form.Group className="input" controlId="name">
+                            <Form.Label>Receipt N°</Form.Label>
+                            <Form.Control
+                              className="input"
+                              placeholder="Receipt N°"
+                              value={recNum}
+                              onChange={(e) => setRecNum(e.target.value)}
+                              disabled={!isPaying}
+                              required
+                            />
+                          </Form.Group>
+                        </Card.Title>
+                      </Card.Body>
+                    </Col>
+                    <Col md={3}>
+                      <div className="d-grid">
+                        <Button
+                          type="button"
+                          onClick={Paying}
+                          className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                          disabled={
+                            invoiceItems.length === 0 ||
+                            !invNum ||
+                            !invDat ||
+                            !codSup
+                          }
+                        >
+                          {isPaying ? 'Not Payment' : 'Load Payment'}
+                        </Button>
+                      </div>
+                      {loading && <LoadingBox></LoadingBox>}
+                    </Col>
+                  </Row>
+                </div>
               </div>
               <div className="bordeTable">
                 <div className="bordeTableinput">
@@ -498,8 +651,7 @@ function AppBuy() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codSup ||
-                            !desVal
+                            !codSup
                           }
                         >
                           Cancel
@@ -517,8 +669,7 @@ function AppBuy() {
                             invoiceItems.length === 0 ||
                             !invNum ||
                             !invDat ||
-                            !codSup ||
-                            !desVal
+                            !codSup
                           }
                         >
                           Save Invoice
@@ -562,6 +713,12 @@ function AppBuy() {
                     setList={setList}
                     total={total}
                     setTotal={setTotal}
+                    valueeR={valueeR}
+                    desval={desval}
+                    numval={numval}
+                    isPaying={isPaying}
+                    //                    totInvwithTax={totInvwithTax}
+                    //                    setTotInvwithTax={setTotInvwithTax}
                   />
                 </article>
               </div>

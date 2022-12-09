@@ -121,7 +121,7 @@ invoiceRouter.post(
       shippingPrice: req.body.shippingPrice,
       taxPrice: req.body.taxPrice,
       totalPrice: req.body.totalPrice,
-      user: req.body.codUse,
+      user: req.user._id,
       supplier: req.body.codSup,
       remNum: req.body.remNum,
       invNum: req.body.invNum,

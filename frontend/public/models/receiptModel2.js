@@ -6,7 +6,7 @@ const receiptSchema = new mongoose.Schema(
       {
         desval: { type: String, required: true },
         numval: { type: Number, required: true },
-        amountval: { type: Number, required: true },
+        amount: { type: Number, required: true },
         valuee: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Valuee',
@@ -16,7 +16,7 @@ const receiptSchema = new mongoose.Schema(
     ],
     itemsPrice: { type: Number },
     totalPrice: { type: Number },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Supplier',

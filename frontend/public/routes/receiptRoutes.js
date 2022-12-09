@@ -103,7 +103,7 @@ receiptRouter.post(
       })),
       itemsPrice: req.body.itemsPrice,
       totalPrice: req.body.totalPrice,
-      user: req.body.codUse,
+      user: req.user._id,
       supplier: req.body.codSup,
       recNum: req.body.recNum,
       recDat: req.body.recDat,

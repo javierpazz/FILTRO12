@@ -96,7 +96,7 @@ function AppBuyRec() {
   const [desPro, setDesPro] = useState('');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
-  const [amount, setAmount] = useState(0);
+  const [amountval, setAmountval] = useState(0);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
   const [width] = useState(641);
@@ -177,7 +177,7 @@ function AppBuyRec() {
     if (recNum && recDat && codSup) {
       const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
       receipt.itemsPrice = round2(
-        receipt.receiptItems.reduce((a, c) => a + c.amount * 1, 0)
+        receipt.receiptItems.reduce((a, c) => a + c.amountval * 1, 0)
       );
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
       receipt.taxPrice = round2(0.15 * 0);
@@ -382,7 +382,7 @@ function AppBuyRec() {
                             <h3>
                               Total: $
                               {receiptItems.reduce(
-                                (a, c) => a + c.amount * 1,
+                                (a, c) => a + c.amountval * 1,
                                 0
                               )}
                             </h3>
@@ -404,8 +404,8 @@ function AppBuyRec() {
                     setQuantity={setQuantity}
                     price={price}
                     setPrice={setPrice}
-                    amount={amount}
-                    setAmount={setAmount}
+                    amountval={amountval}
+                    setAmountval={setAmountval}
                     list={list}
                     setList={setList}
                     total={total}
@@ -439,7 +439,7 @@ function AppBuyRec() {
 
               <TableRec
                 desval={desval}
-                amount={amount}
+                amountval={amountval}
                 receiptItems={receiptItems}
                 total={total}
                 setTotal={setTotal}

@@ -37,8 +37,8 @@ export default function TableFormRec({
   setDesval,
   quantity,
   setQuantity,
-  amount,
-  setAmount,
+  amountval,
+  setAmountval,
   list,
   setList,
   total,
@@ -85,12 +85,12 @@ export default function TableFormRec({
     fetchData();
   }, []);
 
-  // Calculate items amount function
+  // Calculate items amountval function
   useEffect(() => {
-    const calculateAmount = (amount) => {};
+    const calculateAmount = (amountval) => {};
 
-    calculateAmount(amount);
-  }, [codVal, amount, setAmount]);
+    calculateAmount(amountval);
+  }, [codVal, amountval]);
 
   // Submit form function
   const handleSubmit = (e) => {
@@ -99,10 +99,10 @@ export default function TableFormRec({
   };
 
   const addToCartHandler = async (itemVal) => {
-    if (codVal && amount > 0) {
+    if (codVal && amountval > 0) {
       ctxDispatch({
         type: 'RECEIPT_ADD_ITEM',
-        payload: { ...itemVal, desval, amount, numval },
+        payload: { ...itemVal, desval, amountval, numval },
       });
     }
   };
@@ -194,8 +194,8 @@ export default function TableFormRec({
                     <Form.Control
                       className="input"
                       placeholder="Amount"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      value={amountval}
+                      onChange={(e) => setAmountval(e.target.value)}
                       required
                     />
                   </Form.Group>
@@ -239,7 +239,7 @@ export default function TableFormRec({
                 <td>{itemVal._id}</td>
                 <td>{itemVal.desval}</td>
                 <td>{itemVal.numval}</td>
-                <td>{itemVal.amount}</td>
+                <td>{itemVal.amountval}</td>
                 <td>
                   <Button
                     className="mt-0 mb-0 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
