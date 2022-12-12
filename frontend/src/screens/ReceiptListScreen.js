@@ -18,6 +18,9 @@ import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
 import SearchBox from '../components/SearchBox';
+import Modal from 'react-bootstrap/Modal';
+//import MyModal from '../components/MyModal';
+import InvoiceListApliRec from './../screens/InvoiceListApliRec';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -82,6 +85,11 @@ export default function ReceiptListScreen() {
   const { state } = useContext(Store);
   const { userInfo } = state;
 
+  const [fullscreen, setFullscreen] = useState(true);
+  const [show, setShow] = useState(false);
+  const [recNum, setRecNum] = useState('');
+  const [userId, setUserId] = useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -121,6 +129,13 @@ export default function ReceiptListScreen() {
       fetchData();
     }
   }, [page, userInfo, successDelete]);
+
+  const handleShow = (receipt) => {
+    setRecNum(receipt.recNum);
+    setUserId(receipt.user._id);
+    setFullscreen('xxl-down');
+    setShow(true);
+  };
 
   const deleteHandler = async (receipt) => {
     if (window.confirm('Are you sure to delete?')) {
@@ -229,9 +244,7 @@ export default function ReceiptListScreen() {
                     <Button
                       type="button"
                       title="Cambiar Nro. Remito o Factura"
-                      onClick={() => {
-                        navigate(`/receipt/${receipt._id}`);
-                      }}
+                      onClick={() => handleShow(receipt)}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
@@ -259,6 +272,25 @@ export default function ReceiptListScreen() {
               </Link>
             ))}
           </div>
+          <Modal
+            show={show}
+            fullscreen={fullscreen}
+            onHide={() => setShow(false)}
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>
+                Invoices To Apply Receipt N° {recNum} {userId}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <InvoiceListApliRec
+                recNum={recNum}
+                userId={userId}
+                show={show}
+                setShow={setShow}
+              />
+            </Modal.Body>
+          </Modal>
         </>
       )}
     </div>

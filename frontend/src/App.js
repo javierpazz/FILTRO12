@@ -174,18 +174,6 @@ function App() {
                       <LinkContainer to="/admin/configurations">
                         <NavDropdown.Item>Configurations</NavDropdown.Item>
                       </LinkContainer>
-                      <LinkContainer to="/admin/invoicer">
-                        <NavDropdown.Item>Sales Invoicer</NavDropdown.Item>
-                      </LinkContainer>
-                      <LinkContainer to="/admin/invoicerRec">
-                        <NavDropdown.Item>Receipts By Sales</NavDropdown.Item>
-                      </LinkContainer>
-                      <LinkContainer to="/admin/invoicerBuy">
-                        <NavDropdown.Item>Buy Invoices</NavDropdown.Item>
-                      </LinkContainer>
-                      <LinkContainer to="/admin/invoicerBuyRec">
-                        <NavDropdown.Item>Receipt By Buys</NavDropdown.Item>
-                      </LinkContainer>
                     </NavDropdown>
                   )}
                 </Nav>

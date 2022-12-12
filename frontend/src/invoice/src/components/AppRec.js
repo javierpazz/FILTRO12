@@ -168,6 +168,7 @@ function AppRec() {
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
       receipt.taxPrice = round2(0.15 * 0);
       receipt.totalPrice = receipt.itemsPrice;
+      receipt.codUse = codUse;
       receipt.codSup = 0;
       receipt.remNum = remNum;
       receipt.invNum = invNum;
@@ -199,7 +200,9 @@ function AppRec() {
           taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
 
-          supplier: receipt.codSup,
+          codUse: receipt.codUse,
+
+          //          supplier: receipt.codSup,
 
           remNum: receipt.remNum,
           invNum: receipt.invNum,

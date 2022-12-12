@@ -146,11 +146,14 @@ function AppBuy() {
         invoiceItems?.reduce((a, c) => a + c.quantity * c.price, 0) * 1.15
       );
     };
+    if (numval === '') {
+      setNumval('   ');
+    }
     setCodUse(codSup);
     setDesVal(desVal);
     calculateAmountval(amountval);
     addToCartHandler(valueeR);
-  }, [invoiceItems, numval, desval]);
+  }, [invoiceItems, numval, desval, recNum, recDat]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -223,41 +226,46 @@ function AppBuy() {
   const placeCancelInvoiceHandler = async () => {};
 
   const placeInvoiceHandler = async () => {
-    if (invNum && invDat && codSup) {
-      //    list.map((item) => stockHandler({ item }));
-      invoiceItems.map((item) => stockHandler({ item }));
+    if (isPaying && (!recNum || !recDat || !desVal)) {
+      unloadpayment();
+    } else {
+      if (invNum && invDat && codSup) {
+        //    list.map((item) => stockHandler({ item }));
+        invoiceItems.map((item) => stockHandler({ item }));
 
-      const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
-      invoice.itemsPrice = round2(
-        invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
-      );
-      invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
-      invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
-      invoice.totalPrice =
-        invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
-      invoice.codSup = codSup;
-      invoice.remNum = remNum;
-      invoice.invNum = invNum;
-      invoice.invDat = invDat;
-      invoice.recNum = recNum;
-      invoice.recDat = recDat;
-      invoice.desVal = desVal;
-      invoice.notes = notes;
+        const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+        invoice.itemsPrice = round2(
+          invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
+        );
+        invoice.shippingPrice =
+          invoice.itemsPrice > 100 ? round2(0) : round2(10);
+        invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
+        invoice.totalPrice =
+          invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+        invoice.codSup = codSup;
+        invoice.remNum = remNum;
+        invoice.invNum = invNum;
+        invoice.invDat = invDat;
+        invoice.recNum = recNum;
+        invoice.recDat = recDat;
+        invoice.desVal = desVal;
+        invoice.notes = notes;
 
-      if (recNum && recDat && desVal) {
-        receipt.totalPrice = invoice.totalPrice;
-        receipt.codSup = invoice.codSup;
-        receipt.recNum = invoice.recNum;
-        receipt.recDat = invoice.recDat;
-        receipt.desVal = invoice.desVal;
-        receipt.notes = invoice.notes;
+        if (recNum && recDat && desVal) {
+          receipt.totalPrice = invoice.totalPrice;
+          receipt.codSup = invoice.codSup;
+          receipt.recNum = invoice.recNum;
+          receipt.recDat = invoice.recDat;
+          receipt.desVal = invoice.desVal;
+          receipt.notes = invoice.notes;
 
-        receiptHandler();
+          receiptHandler();
+        }
+
+        orderHandler();
+        setShowInvoice(true);
+        //      handlePrint();
       }
-
-      orderHandler();
-      setShowInvoice(true);
-      //      handlePrint();
     }
   };
 
@@ -401,6 +409,11 @@ function AppBuy() {
       setRecDat('');
       setNumval(0);
       setAmountval(0);
+    }
+  };
+
+  const unloadpayment = async () => {
+    if (window.confirm('Are you fill all Dates?')) {
     }
   };
 
@@ -618,7 +631,7 @@ function AppBuy() {
                         </Card.Title>
                       </Card.Body>
                     </Col>
-                    <Col md={3}>
+                    <Col md={2}>
                       <div className="d-grid">
                         <Button
                           type="button"
@@ -633,6 +646,17 @@ function AppBuy() {
                         >
                           {isPaying ? 'Not Payment' : 'Load Payment'}
                         </Button>
+                      </div>
+                      {loading && <LoadingBox></LoadingBox>}
+                    </Col>
+                    <Col md={1}>
+                      <div
+                        className="d-grid mt-3 mb-1 py-1 px-1 transition-all
+                        duration-300"
+                      >
+                        {isPaying && desval && recNum && recDat
+                          ? 'Loaded'
+                          : 'Not Loaded '}
                       </div>
                       {loading && <LoadingBox></LoadingBox>}
                     </Col>

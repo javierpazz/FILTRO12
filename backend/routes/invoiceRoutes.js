@@ -8,14 +8,25 @@ import { isAuth, isAdmin, mailgun, payInvoiceEmailTemplate } from '../utils.js';
 const invoiceRouter = express.Router();
 
 invoiceRouter.get(
-  '/S',
+  '/',
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const invoices = await Invoice.find({ salbuy: 'SALE' }).populate(
-      'user',
-      'name'
-    );
+    const invoices = await Invoice.find();
+    res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
+  '/StoAply/:userId',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const invoices = await Invoice.find({
+      salbuy: 'SALE',
+      recNum: null,
+      user: req.params.userId,
+    }).populate('user', 'name');
     res.send(invoices);
   })
 );
@@ -34,24 +45,14 @@ invoiceRouter.get(
 );
 
 invoiceRouter.get(
-  '/',
+  '/S',
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const invoices = await Invoice.aggregate([
-      { $unwind: '$invoiceItems' },
-      { $match: {} },
-      {
-        $project: {
-          total: '$totalPrice',
-          fecha: '$invDat',
-          cliente: '$user',
-          producto: '$invoiceItems.name',
-          cantidad: '$invoiceItems.quantity',
-          precio: '$invoiceItems.price',
-        },
-      },
-    ]);
+    const invoices = await Invoice.find({ salbuy: 'SALE' }).populate(
+      'user',
+      'name'
+    );
     res.send(invoices);
   })
 );
@@ -200,6 +201,22 @@ invoiceRouter.get(
       page,
       pages: Math.ceil(countInvoices / pageSize),
     });
+  })
+);
+
+invoiceRouter.put(
+  '/:id/applyrec',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      invoice.recNum = req.body.recNum;
+      await invoice.save();
+      res.send({ message: 'Receipt Apllied' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
   })
 );
 
