@@ -1,5 +1,5 @@
 import { useContext, useState, useRef, useEffect, useReducer } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import ClientDetails from './ClientDetails';
 import Dates from './Dates';
@@ -9,7 +9,7 @@ import MainDetails from './MainDetails';
 import Notes from './Notes';
 import Table from './Table';
 import { toast } from 'react-toastify';
-import TableForm from './TableForm';
+import TableFormOrd from './TableFormOrd';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
@@ -24,32 +24,12 @@ import { getError } from '../../../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        products: action.payload.products,
-        page: action.payload.page,
-        pages: action.payload.pages,
-        loading: false,
-      };
-    case 'FETCH_FAIL':
+    case 'ORDER_FETCH_REQUEST':
+      return { ...state, loading: true, error: '' };
+    case 'ORDER_FETCH_SUCCESS':
+      return { ...state, loading: false, invoice: action.payload, error: '' };
+    case 'ORDER_FETCH_FAIL':
       return { ...state, loading: false, error: action.payload };
-
-    case 'SUPPLIER_FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'SUPPLIER_FETCH_SUCCESS':
-      return {
-        ...state,
-        suppliers: action.payload.supliers,
-        page: action.payload.page,
-        pages: action.payload.pages,
-        loading: false,
-      };
-    case 'SUPPLIER_FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
-
     case 'VALUE_FETCH_REQUEST':
       return { ...state, loadingVal: true };
     case 'VALUE_FETCH_SUCCESS':
@@ -62,38 +42,34 @@ const reducer = (state, action) => {
       };
     case 'VALUE_FETCH_FAIL':
       return { ...state, loadingVal: false, error: action.payload };
+
     default:
       return state;
   }
 };
 
-function AppBuy() {
+function AppOrd() {
   const [
-    {
-      loading,
-      error,
-      products,
-      pages,
-      loadingVal,
-      loadingDelete,
-      successDelete,
-    },
+    { loading, error, invoice, values, pages, loadingDelete, successDelete },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
+    invoice: {},
     loadingVal: true,
     error: '',
   });
+
+  const params = useParams();
+  const { id: orderId } = params;
 
   const navigate = useNavigate();
 
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
-    invoice: { invoiceItems },
     receipt: { receiptItems },
   } = state;
 
-  const { invoice, receipt, userInfo, values } = state;
+  const { receipt, userInfo } = state;
 
   const [codUse, setCodUse] = useState('');
   const [name, setName] = useState('');
@@ -103,16 +79,14 @@ function AppBuy() {
   const [recNum, setRecNum] = useState('');
   const [recDat, setRecDat] = useState('');
   const [codVal, setCodVal] = useState('');
+  const [codval, setCodval] = useState('');
   const [desval, setDesval] = useState('');
   const [valueeR, setValueeR] = useState('');
   const [desVal, setDesVal] = useState('');
-  const [numval, setNumval] = useState('');
+  const [numval, setNumval] = useState(0);
   const [userss, setUserss] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [codSup, setCodSup] = useState('');
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
-  const [codPro1, setCodPro1] = useState('');
   const [address, setAddress] = useState('Direccion Usuario');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -142,43 +116,32 @@ function AppBuy() {
 
   useEffect(() => {
     const calculateAmountval = (amountval) => {
-      setAmountval(
-        invoiceItems?.reduce((a, c) => a + c.quantity * c.price, 0) * 1.15
-      );
+      setAmountval(invoice.totalPrice);
     };
     if (numval === '') {
       setNumval(null);
     }
-    setCodUse(codSup);
+    setCodUse(invoice.user);
     setDesVal(desVal);
+    console.log(invoice.invoiceItems);
     calculateAmountval(amountval);
     addToCartHandler(valueeR);
-  }, [invoiceItems, numval, desval, recNum, recDat]);
+  }, [invNum, numval, desval, recNum, recDat]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchOrder = async () => {
       try {
-        const { data } = await axios.get(`/api/users/`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
+        dispatch({ type: 'ORDER_FETCH_REQUEST' });
+        const { data } = await axios.get(`/api/orders/${orderId}`, {
+          headers: { authorization: `Bearer ${userInfo.token}` },
         });
-        setUserss(data);
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
-      } catch (err) {}
+        dispatch({ type: 'ORDER_FETCH_SUCCESS', payload: data });
+        setCodUse(invoice.user);
+      } catch (err) {
+        dispatch({ type: 'ORDER_FETCH_FAIL', payload: getError(err) });
+      }
     };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchDataVal = async () => {
-      try {
-        const { data } = await axios.get(`/api/suppliers/`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        setSuppliers(data);
-        dispatch({ type: 'SUPPLIER_FETCH_SUCCESS', payload: data });
-      } catch (err) {}
-    };
-    fetchDataVal();
+    fetchOrder();
   }, []);
 
   useEffect(() => {
@@ -200,21 +163,11 @@ function AppBuy() {
     }
   }, [width]);
 
-  const searchSup = (codSup) => {
-    const supplierRow = suppliers.find((row) => row._id === codSup);
-    setCodSup(supplierRow._id);
-    setName(supplierRow.name);
-  };
-
-  const handleChange = (e) => {
-    searchSup(e.target.value);
-  };
-
   const searchValue = (codVal) => {
     const valuesRow = valuess.find((row) => row._id === codVal);
     setValueeR(valuesRow);
     setCodVal(valuesRow.codVal);
-    setDesVal(valuesRow.desVal);
+    setCodval(valuesRow.codVal);
     setDesVal(valuesRow.desVal);
     setDesval(valuesRow.desVal);
   };
@@ -229,21 +182,22 @@ function AppBuy() {
     if (isPaying && (!recNum || !recDat || !desVal)) {
       unloadpayment();
     } else {
-      if (invNum && invDat && codSup) {
-        //    list.map((item) => stockHandler({ item }));
-        invoiceItems.map((item) => stockHandler({ item }));
-
+      if (invNum && invDat && codUse) {
+        // AQUI NO TOCO STOCK        invoice.invoiceItems.map((item) => stockHandler({ item }));
         const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
         invoice.itemsPrice = round2(
           invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
         );
         invoice.shippingPrice = 0;
+
         //        invoice.shippingPrice =
         //        invoice.itemsPrice > 100 ? round2(0) : round2(10);
         invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
         invoice.totalPrice =
           invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
-        invoice.codSup = codSup;
+        invoice.codUse = codUse;
+
+        invoice.codSup = '0';
         invoice.remNum = remNum;
         invoice.invNum = invNum;
         invoice.invDat = invDat;
@@ -254,7 +208,8 @@ function AppBuy() {
 
         if (recNum && recDat && desVal) {
           receipt.totalPrice = invoice.totalPrice;
-          receipt.codSup = invoice.codSup;
+          receipt.codUse = invoice.codUse;
+          receipt.codSup = '0';
           receipt.recNum = invoice.recNum;
           receipt.recDat = invoice.recDat;
           receipt.desVal = invoice.desVal;
@@ -262,7 +217,6 @@ function AppBuy() {
 
           receiptHandler();
         }
-
         orderHandler();
         setShowInvoice(true);
         //      handlePrint();
@@ -299,9 +253,9 @@ function AppBuy() {
           taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
 
-          //          codUse: receipt.codUse,
+          codUse: receipt.codUse,
 
-          codSup: receipt.codSup,
+          //          codSup: receipt.codSup,
 
           remNum: receipt.remNum,
           invNum: receipt.invNum,
@@ -310,7 +264,7 @@ function AppBuy() {
           recDat: receipt.recDat,
           desval: receipt.desval,
           notes: receipt.notes,
-          salbuy: 'BUY',
+          salbuy: 'SALE',
         },
         {
           headers: {
@@ -330,44 +284,12 @@ function AppBuy() {
 
   /////////////////////////////////////////////
 
-  const stockHandler = async (item) => {
-    try {
-      dispatch({ type: 'CREATE_REQUEST' });
-      await axios.put(
-        `/api/products/upstock/${item.item._id}`,
-        {
-          quantitys: item.item.quantity,
-        },
-        {
-          headers: {
-            authorization: `Bearer ${userInfo.token}`,
-          },
-        }
-      );
-      dispatch({ type: 'CREATE_SUCCESS' });
-    } catch (err) {
-      dispatch({ type: 'CREATE_FAIL' });
-      toast.error(getError(err));
-    }
-  };
-
   const orderHandler = async () => {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
-      const { data } = await axios.post(
-        '/api/invoices',
-
+      await axios.put(
+        `/api/invoices/${orderId}/applyfac`,
         {
-          invoiceItems: invoice.invoiceItems,
-          shippingAddress: invoice.shippingAddress,
-          paymentMethod: invoice.paymentMethod,
-          itemsPrice: invoice.itemsPrice,
-          shippingPrice: invoice.shippingPrice,
-          taxPrice: invoice.taxPrice,
-          totalPrice: invoice.totalPrice,
-
-          codSup: invoice.codSup,
-
           remNum: invoice.remNum,
           invNum: invoice.invNum,
           invDat: invoice.invDat,
@@ -375,7 +297,7 @@ function AppBuy() {
           recDat: invoice.recDat,
           desVal: invoice.desVal,
           notes: invoice.notes,
-          salbuy: 'BUY',
+          salbuy: 'SALE',
         },
         {
           headers: {
@@ -386,14 +308,7 @@ function AppBuy() {
       ctxDispatch({ type: 'INVOICE_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
       localStorage.removeItem('invoiceItems');
-      setIsPaying(false);
-      setDesval('');
-      setDesVal('');
-      setRecNum('');
-      setRecDat('');
-      setNumval(0);
-      setAmountval(0);
-      //navigate(`/order/${data.order._id}`);
+      navigate(`/admin/orders`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));
@@ -421,7 +336,7 @@ function AppBuy() {
   return (
     <>
       <Helmet>
-        <title>Buy Invoice</title>
+        <title>Sale Invoice</title>
       </Helmet>
 
       <main>
@@ -431,40 +346,9 @@ function AppBuy() {
             <div>
               <div className="bordeTable">
                 <Row>
-                  <Col md={4}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Code</Form.Label>
-                          <Form.Control
-                            className="input"
-                            placeholder="Supplier Code"
-                            value={codSup}
-                            onChange={(e) => setCodSup(e.target.value)}
-                            required
-                          />
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
-                  </Col>
+                  <Col md={4}></Col>
                   <Col md={8}>
-                    <Card.Body>
-                      <Card.Title>
-                        <Form.Group className="input" controlId="name">
-                          <Form.Label>Supplier Name</Form.Label>
-                          <Form.Select
-                            className="input"
-                            onClick={(e) => handleChange(e)}
-                          >
-                            {suppliers.map((elemento) => (
-                              <option key={elemento._id} value={elemento._id}>
-                                {elemento.name}
-                              </option>
-                            ))}
-                          </Form.Select>
-                        </Form.Group>
-                      </Card.Title>
-                    </Card.Body>
+                    Orden Number: <h3>{invoice._id}</h3>
                   </Col>
                 </Row>
 
@@ -638,12 +522,7 @@ function AppBuy() {
                           type="button"
                           onClick={Paying}
                           className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-                          disabled={
-                            invoiceItems.length === 0 ||
-                            !invNum ||
-                            !invDat ||
-                            !codSup
-                          }
+                          disabled={!invNum || !invDat || !codUse}
                         >
                           {isPaying ? 'Not Payment' : 'Load Payment'}
                         </Button>
@@ -672,12 +551,7 @@ function AppBuy() {
                         <Button
                           type="button"
                           onClick={placeCancelInvoiceHandler}
-                          disabled={
-                            invoiceItems.length === 0 ||
-                            !invNum ||
-                            !invDat ||
-                            !codSup
-                          }
+                          disabled={!invNum || !invDat || !codUse}
                         >
                           Cancel
                         </Button>
@@ -690,12 +564,7 @@ function AppBuy() {
                         <Button
                           type="button"
                           onClick={placeInvoiceHandler}
-                          disabled={
-                            invoiceItems.length === 0 ||
-                            !invNum ||
-                            !invDat ||
-                            !codSup
-                          }
+                          disabled={!invNum || !invDat || !codUse}
                         >
                           Save Invoice
                         </Button>
@@ -707,13 +576,7 @@ function AppBuy() {
                       <Card.Body>
                         <Card.Title>
                           <ListGroup.Item>
-                            <h3>
-                              Total: $
-                              {invoiceItems.reduce(
-                                (a, c) => a + c.price * c.quantity,
-                                0
-                              )}
-                            </h3>
+                            <h3>Total: ${invoice.totalPrice}</h3>
                           </ListGroup.Item>
                         </Card.Title>
                       </Card.Body>
@@ -723,7 +586,7 @@ function AppBuy() {
 
                 {/* This is our table form */}
                 <article>
-                  <TableForm
+                  <TableFormOrd
                     codPro={codPro}
                     setCodPro={setCodPro}
                     desPro={desPro}
@@ -742,6 +605,7 @@ function AppBuy() {
                     desval={desval}
                     numval={numval}
                     isPaying={isPaying}
+                    invoiceItems={invoice.invoiceItems}
                     //                    totInvwithTax={totInvwithTax}
                     //                    setTotInvwithTax={setTotInvwithTax}
                   />
@@ -750,55 +614,11 @@ function AppBuy() {
             </div>
           </>
         ) : (
-          <>
-            <ReactToPrint
-              trigger={() => <Button type="button">Print / Download</Button>}
-              content={() => componentRef.current}
-            />
-            <Button onClick={() => setShowInvoice(false)}>New Invoice</Button>
-
-            {/* Invoice Preview */}
-
-            <div ref={componentRef} className="p-5">
-              <Header handlePrint={handlePrint} />
-
-              <MainDetails codUse={codUse} name={name} address={address} />
-
-              <ClientDetails
-                clientName={clientName}
-                clientAddress={clientAddress}
-              />
-
-              <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
-
-              <Table
-                desPro={desPro}
-                quantity={quantity}
-                price={price}
-                amount={amount}
-                invoiceItems={invoiceItems}
-                setList={setList}
-                total={total}
-                setTotal={setTotal}
-              />
-
-              <Notes notes={notes} />
-
-              <Footer
-                name={name}
-                address={address}
-                website={website}
-                email={email}
-                phone={phone}
-                bankAccount={bankAccount}
-                bankName={bankName}
-              />
-            </div>
-          </>
+          <></>
         )}
       </main>
     </>
   );
 }
 
-export default AppBuy;
+export default AppOrd;

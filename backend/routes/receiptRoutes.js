@@ -42,7 +42,7 @@ receiptRouter.get(
   })
 );
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 receiptRouter.get(
   '/adminB',

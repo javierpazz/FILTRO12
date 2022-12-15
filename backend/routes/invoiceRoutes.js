@@ -32,6 +32,20 @@ invoiceRouter.get(
 );
 
 invoiceRouter.get(
+  '/BtoAply/:suppId',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const invoices = await Invoice.find({
+      salbuy: 'BUY',
+      recNum: null,
+      supplier: req.params.suppId,
+    }).populate('supplier', 'name');
+    res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
   '/B',
   isAuth,
   isAdmin,
@@ -57,7 +71,7 @@ invoiceRouter.get(
   })
 );
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 invoiceRouter.get(
   '/adminS',
@@ -205,6 +219,46 @@ invoiceRouter.get(
 );
 
 invoiceRouter.put(
+  '/:id/applycha',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      invoice.remNum = req.body.remNum;
+      invoice.invNum = req.body.invNum;
+      await invoice.save();
+      res.send({ message: 'Remit Invoice Number Changed successfully' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
+  })
+);
+
+invoiceRouter.put(
+  '/:id/applyfac',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      invoice.remNum = req.body.remNum;
+      invoice.invNum = req.body.invNum;
+      invoice.invDat = req.body.invDat;
+      invoice.recNum = req.body.recNum;
+      invoice.recDat = req.body.recDat;
+      invoice.desVal = req.body.desVal;
+      invoice.notes = req.body.notes;
+      invoice.salbuy = req.body.salbuy;
+      await invoice.save();
+      res.send({ message: 'Receipt Apllied' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
+  })
+);
+
+invoiceRouter.put(
   '/:id/applyrec',
   isAuth,
   expressAsyncHandler(async (req, res) => {
@@ -212,6 +266,24 @@ invoiceRouter.put(
     //    console.log(req.body.recNum);
     if (invoice) {
       invoice.recNum = req.body.recNum;
+      invoice.recDat = req.body.recDat;
+      await invoice.save();
+      res.send({ message: 'Receipt Apllied' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
+  })
+);
+
+invoiceRouter.put(
+  '/:id/applyrecbuy',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      invoice.recNum = req.body.recNum;
+      invoice.recDat = req.body.recDat;
       await invoice.save();
       res.send({ message: 'Receipt Apllied' });
     } else {

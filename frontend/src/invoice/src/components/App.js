@@ -132,7 +132,7 @@ function App() {
       );
     };
     if (numval === '') {
-      setNumval('   ');
+      setNumval(null);
     }
     setCodUse(codUse);
     setDesVal(desVal);
@@ -207,15 +207,14 @@ function App() {
         invoice.itemsPrice = round2(
           invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
         );
-        invoice.shippingPrice =
-          invoice.itemsPrice > 100 ? round2(0) : round2(10);
+        invoice.shippingPrice = 0;
+
+        //        invoice.shippingPrice =
+        //        invoice.itemsPrice > 100 ? round2(0) : round2(10);
         invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
         invoice.totalPrice =
           invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
         invoice.codUse = codUse;
-        console.log(codUse);
-        console.log('INVOICEcodUse');
-        console.log(invoice.codUse);
 
         invoice.codSup = '0';
         invoice.remNum = remNum;
@@ -367,7 +366,7 @@ function App() {
       setIsPaying(false);
       setDesval('');
       setDesVal('');
-      setRecNum(0);
+      setRecNum('');
       setRecDat('');
       setNumval(0);
       setAmountval(0);
@@ -384,7 +383,7 @@ function App() {
     if (isPaying) {
       setDesval('');
       setDesVal('');
-      setRecNum(0);
+      setRecNum('');
       setRecDat('');
       setNumval(0);
       setAmountval(0);

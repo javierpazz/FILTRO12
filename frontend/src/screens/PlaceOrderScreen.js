@@ -80,13 +80,14 @@ export default function PlaceOrderScreen() {
       const { data } = await Axios.post(
         '/api/orders',
         {
-          orderItems: cart.cartItems,
+          invoiceItems: cart.cartItems,
           shippingAddress: cart.shippingAddress,
           paymentMethod: cart.paymentMethod,
           itemsPrice: cart.itemsPrice,
           shippingPrice: cart.shippingPrice,
           taxPrice: cart.taxPrice,
           totalPrice: cart.totalPrice,
+          ordYes: 'Y',
         },
         {
           headers: {

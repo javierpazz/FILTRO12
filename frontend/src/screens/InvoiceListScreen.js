@@ -18,6 +18,8 @@ import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
 import SearchBox from '../components/SearchBox';
+import Modal from 'react-bootstrap/Modal';
+import InvoiceListChaNum from './../screens/InvoiceListChaNum';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -85,6 +87,8 @@ export default function InvoiceListScreen() {
   const { state } = useContext(Store);
   const { userInfo } = state;
   const [total, setTotal] = useState(0);
+  const [show, setShow] = useState(false);
+  const [invoice, setInvoice] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,7 +99,6 @@ export default function InvoiceListScreen() {
         });
         dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
         calculatotal();
-        console.log(data);
       } catch (err) {
         dispatch({
           type: 'TOTAL_FETCH_FAIL',
@@ -128,6 +131,11 @@ export default function InvoiceListScreen() {
       fetchData();
     }
   }, [page, userInfo, successDelete]);
+
+  const handleShow = (invoice) => {
+    setInvoice(invoice);
+    setShow(true);
+  };
 
   const deleteHandler = async (invoice) => {
     if (window.confirm('Are you sure to delete?')) {
@@ -197,12 +205,12 @@ export default function InvoiceListScreen() {
             <thead>
               <tr>
                 <th>FACTURA</th>
+                <th>FECHA</th>
                 <th>REMITO</th>
                 <th>PEDIDO</th>
                 <th>RECIBO</th>
-                <th>FECHA</th>
                 <th>CLIENTE</th>
-                <th>PAGADA</th>
+                <th>PAGOS</th>
                 <th>FORMA PAGO</th>
                 <th>TOTAL</th>
                 <th>ACCIONES</th>
@@ -212,14 +220,12 @@ export default function InvoiceListScreen() {
               {invoices?.map((invoice) => (
                 <tr key={invoice._id}>
                   <td>{invoice.invNum}</td>
+                  <td>{invoice.invDat.substring(0, 10)}</td>
                   <td>{invoice.remNum}</td>
                   <td>{invoice.ordNum}</td>
                   <td>{invoice.recNum}</td>
-                  <td>{invoice.invDat.substring(0, 10)}</td>
                   <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
-                  <td>
-                    {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}
-                  </td>
+                  <td>{invoice.recNum ? invoice.recDat : 'No'}</td>
                   <td>{invoice.desVal}</td>
                   <td>{invoice.totalPrice.toFixed(2)}</td>
 
@@ -246,10 +252,8 @@ export default function InvoiceListScreen() {
                     &nbsp;
                     <Button
                       type="button"
-                      title="Cambiar Nro. Remito o Factura"
-                      onClick={() => {
-                        navigate(`/invoice/${invoice._id}`);
-                      }}
+                      title="Add or Change Invoice or Remit Number"
+                      onClick={() => handleShow(invoice._id)}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
@@ -277,6 +281,25 @@ export default function InvoiceListScreen() {
               </Link>
             ))}
           </div>
+          <Modal
+            size="xl"
+            show={show}
+            onHide={() => setShow(false)}
+            aria-labelledby="example-modal-sizes-title-lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="example-modal-sizes-title-lg">
+                Change REmit Invoice Number of {invoice}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <InvoiceListChaNum
+                invoice={invoice}
+                show={show}
+                setShow={setShow}
+              />
+            </Modal.Body>
+          </Modal>
         </>
       )}
     </div>

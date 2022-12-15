@@ -46,7 +46,7 @@ const reducer = (state, action) => {
 export default function InvoiceListApliRec({
   recNum,
   recDat,
-  userId,
+  suppId,
   show,
   setShow,
 }) {
@@ -61,7 +61,7 @@ export default function InvoiceListApliRec({
 
   const { state } = useContext(Store);
   const { userInfo } = state;
-  const [total, setTotal] = useState('');
+  const [total, setTotal] = useState(0);
   const [invId, setInvId] = useState('');
   const [name, setName] = useState('');
   const [remNum, setRemNum] = useState('');
@@ -73,7 +73,7 @@ export default function InvoiceListApliRec({
     const fetchData = async () => {
       try {
         dispatch({ type: 'TOTAL_FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices/StoAply/${userId} `, {
+        const { data } = await axios.get(`/api/invoices/BtoAply/${suppId} `, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
@@ -90,7 +90,7 @@ export default function InvoiceListApliRec({
   const selectHandle = (invoice) => {
     setInvId(invoice._id);
     setTotal(invoice.totalPrice);
-    setName(invoice.user.name);
+    setName(invoice.supplier.name);
     setRemNum(invoice.remNum);
     setOrdNum(invoice.ordNum);
     setInvNum(invoice.invNum);
@@ -110,7 +110,7 @@ export default function InvoiceListApliRec({
     try {
       //          dispatch({ type: 'UPDATE_REQUEST' });
       await axios.put(
-        `/api/invoices/${invId}/applyrec`,
+        `/api/invoices/${invId}/applyrecbuy`,
         {
           recNum: recNum,
           recDat: recDat,
@@ -234,7 +234,11 @@ export default function InvoiceListApliRec({
                   <td>{invoice.remNum}</td>
                   <td>{invoice.ordNum}</td>
                   <td>{invoice.recNum}</td>
-                  <td>{invoice.user ? invoice.user.name : 'DELETED CLIENT'}</td>
+                  <td>
+                    {invoice.supplier
+                      ? invoice.supplier.name
+                      : 'DELETED SUPPLIER'}
+                  </td>
                   <td>
                     {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}
                   </td>

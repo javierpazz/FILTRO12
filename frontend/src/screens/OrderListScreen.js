@@ -102,6 +102,9 @@ export default function OrderListScreen() {
     }
   };
 
+  const handleShow = (orderId) => {
+    navigate(`/admin/invoicerOrd/${orderId}`);
+  };
   return (
     <div>
       <Helmet>
@@ -131,7 +134,7 @@ export default function OrderListScreen() {
               {orders.map((order) => (
                 <tr key={order._id}>
                   <td>{order._id}</td>
-                  <td>{order.user ? order.user.name : 'DELETED USER'}</td>
+                  <td>{order.user ? order.user.name : 'DELETED CLIENT'}</td>
                   <td>{order.createdAt.substring(0, 10)}</td>
                   <td>{order.totalPrice.toFixed(2)}</td>
                   <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
@@ -151,21 +154,13 @@ export default function OrderListScreen() {
                     >
                       Details
                     </Button>
-                    &nbsp;
-                    <Button
-                      type="button"
-                      variant="light"
-                      onClick={() => deleteHandler(order)}
-                    >
-                      Delete
-                    </Button>
                   </td>
                   <td>
                     <Button
                       type="button"
                       title="Imprimir"
                       onClick={() => {
-                        navigate(`/order/${order._id}`);
+                        navigate(`/invoice/${order._id}`);
                       }}
                     >
                       <AiFillPrinter className="text-black-500 font-bold text-xl" />
@@ -175,7 +170,7 @@ export default function OrderListScreen() {
                       type="button"
                       title="Send Email"
                       onClick={() => {
-                        navigate(`/order/${order._id}`);
+                        navigate(`/invoice/${order._id}`);
                       }}
                     >
                       <AiOutlineMail className="text-black-500 font-bold text-xl" />
@@ -183,10 +178,8 @@ export default function OrderListScreen() {
                     &nbsp;
                     <Button
                       type="button"
-                      title="Proceso de ver??"
-                      onClick={() => {
-                        navigate(`/order/${order._id}`);
-                      }}
+                      title="Invoice Order"
+                      onClick={() => handleShow(order._id)}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>

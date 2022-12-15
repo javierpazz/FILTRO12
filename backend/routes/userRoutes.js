@@ -16,7 +16,7 @@ userRouter.get(
   })
 );
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 userRouter.get(
   '/admin',

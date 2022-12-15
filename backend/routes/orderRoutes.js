@@ -1,6 +1,6 @@
 import express from 'express';
 import expressAsyncHandler from 'express-async-handler';
-import Order from '../models/orderModel.js';
+import Invoice from '../models/invoiceModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
 import { isAuth, isAdmin, mailgun, payOrderEmailTemplate } from '../utils.js';
@@ -12,12 +12,12 @@ orderRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.find().populate('user', 'name');
+    const orders = await Invoice.find().populate('user', 'name');
     res.send(orders);
   })
 );
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 orderRouter.get(
   '/admin',
@@ -28,10 +28,11 @@ orderRouter.get(
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE;
 
-    const orders = await Order.find()
+    const orders = await Invoice.find({ ordYes: 'Y', salbuy: null })
+      .populate('user', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countOrders = await Order.countDocuments();
+    const countOrders = await Invoice.countDocuments();
     res.send({
       orders,
       countOrders,
@@ -45,8 +46,11 @@ orderRouter.post(
   '/',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const newOrder = new Order({
-      orderItems: req.body.orderItems.map((x) => ({ ...x, product: x._id })),
+    const newOrder = new Invoice({
+      invoiceItems: req.body.invoiceItems.map((x) => ({
+        ...x,
+        product: x._id,
+      })),
       shippingAddress: req.body.shippingAddress,
       paymentMethod: req.body.paymentMethod,
       itemsPrice: req.body.itemsPrice,
@@ -54,6 +58,7 @@ orderRouter.post(
       taxPrice: req.body.taxPrice,
       totalPrice: req.body.totalPrice,
       user: req.user._id,
+      ordYes: req.body.ordYes,
     });
 
     const order = await newOrder.save();
@@ -66,7 +71,7 @@ orderRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const orders = await Order.aggregate([
+    const orders = await Invoice.aggregate([
       {
         $group: {
           _id: null,
@@ -83,7 +88,7 @@ orderRouter.get(
         },
       },
     ]);
-    const dailyOrders = await Order.aggregate([
+    const dailyOrders = await Invoice.aggregate([
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -113,10 +118,10 @@ orderRouter.get(
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE;
 
-    const orders = await Order.find({ user: req.user._id })
+    const orders = await Invoice.find({ user: req.user._id })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countOrders = await Order.countDocuments();
+    const countOrders = await Invoice.countDocuments();
 
     res.send({
       orders,
@@ -131,7 +136,10 @@ orderRouter.get(
   '/:id',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const order = await Invoice.findById(req.params.id).populate(
+      'user',
+      'name'
+    );
     if (order) {
       res.send(order);
     } else {
@@ -144,7 +152,7 @@ orderRouter.put(
   '/:id/deliver',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const order = await Invoice.findById(req.params.id);
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
@@ -160,7 +168,7 @@ orderRouter.put(
   '/:id/pay',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id).populate(
+    const order = await Invoice.findById(req.params.id).populate(
       'user',
       'email name'
     );
@@ -205,7 +213,7 @@ orderRouter.delete(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id);
+    const order = await Invoice.findById(req.params.id);
     if (order) {
       await order.remove();
       res.send({ message: 'Order Deleted' });

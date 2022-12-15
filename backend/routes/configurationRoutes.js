@@ -57,7 +57,7 @@ configurationRouter.delete(
   })
 );
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 configurationRouter.get(
   '/admin',

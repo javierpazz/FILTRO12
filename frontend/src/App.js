@@ -44,6 +44,7 @@ import ValueeListScreen from './screens/ValueeListScreen';
 import ValueeEditScreen from './screens/ValueeEditScreen';
 import ConfigurationListScreen from './screens/ConfigurationListScreen';
 import ConfigurationEditScreen from './screens/ConfigurationEditScreen';
+import InvoicesOrd from './invoice/src/InvoicesOrd';
 import Invoices from './invoice/src/Invoices';
 import InvoicesRec from './invoice/src/InvoicesRec';
 import InvoicesBuy from './invoice/src/InvoicesBuy';
@@ -360,6 +361,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <Invoices />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/invoicerOrd/:id"
+                element={
+                  <AdminRoute>
+                    <InvoicesOrd />
                   </AdminRoute>
                 }
               ></Route>

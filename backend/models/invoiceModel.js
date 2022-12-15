@@ -60,6 +60,11 @@ const invoiceSchema = new mongoose.Schema(
     ordNum: { type: Number },
     notes: { type: String },
     salbuy: { type: String },
+    pedcotNum: { type: Number },
+    pedcotDat: { type: Date },
+    cotNum: { type: Number },
+    cotDat: { type: Date },
+    ordYes: { type: String },
   },
   {
     timestamps: true,

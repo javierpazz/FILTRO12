@@ -77,10 +77,10 @@ export default function InvoiceHistoryScreen() {
             <thead>
               <tr>
                 <th>FACTURA</th>
+                <th>FECHA</th>
                 <th>REMITO</th>
                 <th>PEDIDO</th>
                 <th>RECIBO</th>
-                <th>FECHA</th>
                 <th>CLIENTE</th>
                 <th>PAGADA</th>
                 <th>FORMA PAGO</th>
@@ -92,10 +92,10 @@ export default function InvoiceHistoryScreen() {
               {invoices.map((invoice) => (
                 <tr key={invoice._id}>
                   <td>{invoice.invNum}</td>
+                  <td>{invoice.invDat.substring(0, 10)}</td>
                   <td>{invoice.remNum}</td>
                   <td>{invoice.ordNum}</td>
                   <td>{invoice.recNum}</td>
-                  <td>{invoice.invDat.substring(0, 10)}</td>
                   <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
                   <td>
                     {invoice.isPaid ? invoice.paidAt.substring(0, 10) : 'No'}

@@ -18,6 +18,8 @@ import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
 import SearchBox from '../components/SearchBox';
+import Modal from 'react-bootstrap/Modal';
+import InvoiceListApliRecBuy from './../screens/InvoiceListApliRecBuy';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -84,6 +86,11 @@ export default function ReceiptListScreen() {
   const { state } = useContext(Store);
   const { userInfo } = state;
 
+  const [show, setShow] = useState(false);
+  const [recNum, setRecNum] = useState('');
+  const [recDat, setRecDat] = useState('');
+  const [suppId, setSuppId] = useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -123,6 +130,13 @@ export default function ReceiptListScreen() {
       fetchData();
     }
   }, [page, userInfo, successDelete]);
+
+  const handleShow = (receipt) => {
+    setRecNum(receipt.recNum);
+    setRecDat(receipt.recDat);
+    setSuppId(receipt.supplier._id);
+    setShow(true);
+  };
 
   const deleteHandler = async (receipt) => {
     if (window.confirm('Are you sure to delete?')) {
@@ -189,7 +203,6 @@ export default function ReceiptListScreen() {
                 <th>RECIBO</th>
                 <th>FECHA</th>
                 <th>PROVEEDOR</th>
-                <th>PAGADA</th>
                 <th>FORMA PAGO</th>
                 <th>TOTAL</th>
                 <th>ACCIONES</th>
@@ -204,9 +217,6 @@ export default function ReceiptListScreen() {
                     {receipt.supplier
                       ? receipt.supplier.name
                       : 'DELETED SUPPLIER'}
-                  </td>
-                  <td>
-                    {receipt.isPaid ? receipt.paidAt.substring(0, 10) : 'No'}
                   </td>
                   <td>{receipt.desval}</td>
                   <td>{receipt.totalPrice.toFixed(2)}</td>
@@ -234,10 +244,8 @@ export default function ReceiptListScreen() {
                     &nbsp;
                     <Button
                       type="button"
-                      title="Cambiar Nro. Remito o Factura"
-                      onClick={() => {
-                        navigate(`/receipt/${receipt._id}`);
-                      }}
+                      title="Apply Receipt to Invoice"
+                      onClick={() => handleShow(receipt)}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
@@ -265,6 +273,27 @@ export default function ReceiptListScreen() {
               </Link>
             ))}
           </div>
+          <Modal
+            size="xl"
+            show={show}
+            onHide={() => setShow(false)}
+            aria-labelledby="example-modal-sizes-title-lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="example-modal-sizes-title-lg">
+                Invoices To Apply Receipt N° {recNum}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <InvoiceListApliRecBuy
+                recNum={recNum}
+                recDat={recDat}
+                suppId={suppId}
+                show={show}
+                setShow={setShow}
+              />
+            </Modal.Body>
+          </Modal>
         </>
       )}
     </div>
