@@ -41,7 +41,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/seed', seedRouter);
 app.use('/api/products', productRouter);
 app.use('/api/suppliers', supplierRouter);
-app.use('/api/stateOrd', stateOrdRouter);
+app.use('/api/stateOrds', stateOrdRouter);
 app.use('/api/users', userRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/invoices', invoiceRouter);

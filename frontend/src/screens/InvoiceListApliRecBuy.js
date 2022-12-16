@@ -196,11 +196,7 @@ export default function InvoiceListApliRec({
         </Col>
         <Col md={1} className="col text-end">
           <div>
-            <Button
-              type="button"
-              onClick={() => setShow(false)}
-              disable="false"
-            >
+            <Button type="button" onClick={() => setShow(false)}>
               Cancel
             </Button>
           </div>
@@ -208,7 +204,11 @@ export default function InvoiceListApliRec({
 
         <Col md={1} className="col text-end">
           <div>
-            <Button type="button" onClick={applyHandler}>
+            <Button
+              type="button"
+              onClick={applyHandler}
+              disabled={!total || !invNum}
+            >
               Apply
             </Button>
           </div>
@@ -260,7 +260,6 @@ export default function InvoiceListApliRec({
                     <Col md={2}>
                       <Button
                         type="button"
-                        title="Imprimir"
                         onClick={() => {
                           selectHandle(invoice);
                         }}

@@ -83,7 +83,7 @@ stateOrdRouter.get(
 
 stateOrdRouter.get('/:id', async (req, res) => {
   const stateOrd = await StateOrd.findById(req.params.id);
-  if (supplier) {
+  if (stateOrd) {
     res.send(stateOrd);
   } else {
     res.status(404).send({ message: 'State Order Not Found' });

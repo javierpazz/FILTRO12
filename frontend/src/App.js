@@ -38,6 +38,8 @@ import ReceiptBuyListScreen from './screens/ReceiptBuyListScreen';
 import OrderListScreen from './screens/OrderListScreen';
 import SupplierListScreen from './screens/SupplierListScreen';
 import SupplierEditScreen from './screens/SupplierEditScreen';
+import StateOrdListScreen from './screens/StateOrdListScreen';
+import StateOrdEditScreen from './screens/StateOrdEditScreen';
 import UserListScreen from './screens/UserListScreen';
 import UserEditScreen from './screens/UserEditScreen';
 import ValueeListScreen from './screens/ValueeListScreen';
@@ -165,6 +167,9 @@ function App() {
                       </LinkContainer>
                       <LinkContainer to="/admin/suppliers">
                         <NavDropdown.Item>Suppliers</NavDropdown.Item>
+                      </LinkContainer>
+                      <LinkContainer to="/admin/stateOrds">
+                        <NavDropdown.Item>States Order</NavDropdown.Item>
                       </LinkContainer>
                       <LinkContainer to="/admin/users">
                         <NavDropdown.Item>Users</NavDropdown.Item>
@@ -321,6 +326,22 @@ function App() {
                 element={
                   <AdminRoute>
                     <SupplierEditScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/stateOrds"
+                element={
+                  <AdminRoute>
+                    <StateOrdListScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/stateOrd/:id"
+                element={
+                  <AdminRoute>
+                    <StateOrdEditScreen />
                   </AdminRoute>
                 }
               ></Route>

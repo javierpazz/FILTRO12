@@ -16,17 +16,17 @@ import { getError } from '../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'VALUE_FETCH_REQUEST':
+    case 'STATE_FETCH_REQUEST':
       return { ...state, loadingVal: true };
-    case 'VALUE_FETCH_SUCCESS':
+    case 'STATE_FETCH_SUCCESS':
       return {
         ...state,
-        values: action.payload.values,
+        stateOrds: action.payload.stateOrds,
         pageVal: action.payload.page,
         pagesVal: action.payload.pages,
         loadingVal: false,
       };
-    case 'VALUE_FETCH_FAIL':
+    case 'STATE_FETCH_FAIL':
       return { ...state, loadingVal: false, error: action.payload };
 
     default:
@@ -35,7 +35,15 @@ const reducer = (state, action) => {
 };
 export default function OrderState({ invoice, show, setShow }) {
   const [
-    { loading, error, values, pages, loadingVal, loadingDelete, successDelete },
+    {
+      loading,
+      error,
+      stateOrds,
+      pages,
+      loadingVal,
+      loadingDelete,
+      successDelete,
+    },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
@@ -51,12 +59,12 @@ export default function OrderState({ invoice, show, setShow }) {
   const [remNum, setRemNum] = useState(invoice.remNum);
   const [invNum, setInvNum] = useState(invoice.invNum);
   const [createdAt, setCreatedAt] = useState(invoice.createdAt);
-  const [codval, setCodval] = useState('');
+  const [codSta, setCodSta] = useState('');
   const [desval, setDesval] = useState('');
   const [staOrd, setStaOrd] = useState(invoice.staOrd);
   const [staOrdAux, setStaOrdAux] = useState(invoice.staOrd);
-  const [valuess, setValuess] = useState([]);
-  const [valueeR, setValueeR] = useState('');
+  const [stateOrdss, setStateOrdss] = useState([]);
+  const [stateOrdR, setStateOrdR] = useState('');
 
   const LoadInvoice = (invoice) => {
     setInvId(invoice._id);
@@ -72,11 +80,13 @@ export default function OrderState({ invoice, show, setShow }) {
   useEffect(() => {
     const fetchDataVal = async () => {
       try {
-        const { data } = await axios.get(`/api/valuees/`, {
+        const { data } = await axios.get(`/api/stateOrds/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        setValuess(data);
-        dispatch({ type: 'VALUE_FETCH_SUCCESS', payload: data });
+        setStateOrdss(data);
+        console.log(data);
+
+        dispatch({ type: 'STATE_FETCH_SUCCESS', payload: data });
       } catch (err) {}
     };
     fetchDataVal();
@@ -84,8 +94,6 @@ export default function OrderState({ invoice, show, setShow }) {
 
   useEffect(() => {
     LoadInvoice(invoice);
-    console.log(invoice);
-    console.log(invoice.totalPrice);
   }, []);
 
   const stateHandler = () => {
@@ -121,12 +129,11 @@ export default function OrderState({ invoice, show, setShow }) {
     }
   };
 
-  const searchValue = (codVal) => {
-    const valuesRow = valuess.find((row) => row._id === codVal);
-    setValueeR(valuesRow);
-    setCodval(valuesRow.codVal);
-    setDesval(valuesRow.desVal);
-    setStaOrd(valuesRow.desVal);
+  const searchValue = (codSta) => {
+    const stateOrdRow = stateOrdss.find((row) => row._id === codSta);
+    setStateOrdR(stateOrdRow);
+    setCodSta(stateOrdRow._id);
+    setStaOrd(stateOrdRow.name);
   };
 
   const handleValueChange = (e) => {
@@ -208,14 +215,14 @@ export default function OrderState({ invoice, show, setShow }) {
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input" controlId="name">
-                  <Form.Label>Values</Form.Label>
+                  <Form.Label>State Orders</Form.Label>
                   <Form.Select
                     className="input"
                     onClick={(e) => handleValueChange(e)}
                   >
-                    {valuess.map((elementoV) => (
+                    {stateOrdss.map((elementoV) => (
                       <option key={elementoV._id} value={elementoV._id}>
-                        {elementoV.desVal}
+                        {elementoV.name}
                       </option>
                     ))}
                   </Form.Select>
