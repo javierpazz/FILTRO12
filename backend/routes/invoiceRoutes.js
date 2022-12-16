@@ -227,6 +227,7 @@ invoiceRouter.put(
     if (invoice) {
       invoice.remNum = req.body.remNum;
       invoice.invNum = req.body.invNum;
+      invoice.staOrd = req.body.staOrd;
       await invoice.save();
       res.send({ message: 'Remit Invoice Number Changed successfully' });
     } else {

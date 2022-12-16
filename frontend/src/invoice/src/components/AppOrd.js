@@ -123,7 +123,6 @@ function AppOrd() {
     }
     setCodUse(invoice.user);
     setDesVal(desVal);
-    console.log(invoice.invoiceItems);
     calculateAmountval(amountval);
     addToCartHandler(valueeR);
   }, [invNum, numval, desval, recNum, recDat]);
@@ -331,6 +330,10 @@ function AppOrd() {
   const unloadpayment = async () => {
     if (window.confirm('Are you fill all Dates?')) {
     }
+  };
+
+  const clearitems = () => {
+    setShowInvoice(false);
   };
 
   return (
@@ -614,7 +617,54 @@ function AppOrd() {
             </div>
           </>
         ) : (
-          <></>
+          <>
+            {' '}
+            <>
+              <ReactToPrint
+                trigger={() => <Button type="button">Print / Download</Button>}
+                content={() => componentRef.current}
+              />
+              <Button onClick={() => clearitems()}>New Invoice</Button>
+
+              {/* Invoice Preview */}
+
+              <div ref={componentRef} className="p-5">
+                <Header handlePrint={handlePrint} />
+
+                <MainDetails codUse={codUse} name={name} address={address} />
+
+                <ClientDetails
+                  clientName={clientName}
+                  clientAddress={clientAddress}
+                />
+
+                <Dates invNum={invNum} invDat={invDat} dueDat={dueDat} />
+
+                <Table
+                  desPro={desPro}
+                  quantity={quantity}
+                  price={price}
+                  amount={amount}
+                  invoiceItems={invoice.invoiceItems}
+                  setList={setList}
+                  total={total}
+                  setTotal={setTotal}
+                />
+
+                <Notes notes={notes} />
+
+                <Footer
+                  name={name}
+                  address={address}
+                  website={website}
+                  email={email}
+                  phone={phone}
+                  bankAccount={bankAccount}
+                  bankName={bankName}
+                />
+              </div>
+            </>
+          </>
         )}
       </main>
     </>

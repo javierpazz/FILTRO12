@@ -5,6 +5,8 @@ export default function Table({ invoiceItems, total }) {
 
   return (
     <>
+      {console.log(invoiceItems)}
+
       <table width="100%" className="mb-10">
         <thead>
           <tr className="bg-gray-100 p-1">
@@ -15,7 +17,7 @@ export default function Table({ invoiceItems, total }) {
             <td className="font-bold">Amount</td>
           </tr>
         </thead>
-        {invoiceItems.map((itemInv) => (
+        {invoiceItems?.map((itemInv) => (
           <React.Fragment key={itemInv._id}>
             <tbody>
               <tr className="h-10">

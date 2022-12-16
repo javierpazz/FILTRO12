@@ -69,7 +69,7 @@ export default function TableFormRec({
   const [isEditing, setIsEditing] = useState(false);
   const [valuees, setValuees] = useState([]);
   const [valueeR, setValueeR] = useState('');
-  const [numval, setNumval] = useState('');
+  const [numval, setNumval] = useState(' ');
   const [stock, setStock] = useState(0);
 
   useEffect(() => {
@@ -84,6 +84,13 @@ export default function TableFormRec({
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (numval === '') {
+      setNumval(' ');
+    }
+    setCodVal(codVal);
+  }, [numval, codVal, amountval]);
 
   // Calculate items amountval function
   useEffect(() => {
@@ -210,6 +217,7 @@ export default function TableFormRec({
                     <Button
                       onClick={() => addToCartHandler(valueeR)}
                       className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
+                      disabled={!codVal || !numval || !amountval}
                     >
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
                     </Button>

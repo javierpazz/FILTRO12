@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
   AiOutlineDelete,
@@ -15,6 +15,8 @@ import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
 import { getError } from '../utils';
+import Modal from 'react-bootstrap/Modal';
+import OrderState from './../screens/OrderState';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -61,6 +63,8 @@ export default function OrderListScreen() {
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
   const page = sp.get('page') || 1;
+  const [show, setShow] = useState(false);
+  const [invoice, setInvoice] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,6 +104,11 @@ export default function OrderListScreen() {
         });
       }
     }
+  };
+
+  const handleState = (invoice) => {
+    setInvoice(invoice);
+    setShow(true);
   };
 
   const handleShow = (orderId) => {
@@ -186,6 +195,14 @@ export default function OrderListScreen() {
                     &nbsp;
                     <Button
                       type="button"
+                      title="Order State"
+                      onClick={() => handleState(order)}
+                    >
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
                       title="Delete"
                       onClick={() => deleteHandler(order)}
                     >
@@ -207,6 +224,21 @@ export default function OrderListScreen() {
               </Link>
             ))}
           </div>
+          <Modal
+            size="xl"
+            show={show}
+            onHide={() => setShow(false)}
+            aria-labelledby="example-modal-sizes-title-lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="example-modal-sizes-title-lg">
+                State Order N° {invoice._id}
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <OrderState invoice={invoice} show={show} setShow={setShow} />
+            </Modal.Body>
+          </Modal>
         </>
       )}
     </div>

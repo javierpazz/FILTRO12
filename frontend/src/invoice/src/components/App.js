@@ -94,7 +94,7 @@ function App() {
   const [desval, setDesval] = useState('');
   const [valueeR, setValueeR] = useState('');
   const [desVal, setDesVal] = useState('');
-  const [numval, setNumval] = useState(0);
+  const [numval, setNumval] = useState(' ');
   const [userss, setUserss] = useState([]);
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
@@ -132,7 +132,7 @@ function App() {
       );
     };
     if (numval === '') {
-      setNumval(null);
+      setNumval(' ');
     }
     setCodUse(codUse);
     setDesVal(desVal);
@@ -360,15 +360,15 @@ function App() {
           },
         }
       );
-      ctxDispatch({ type: 'INVOICE_CLEAR' });
-      dispatch({ type: 'CREATE_SUCCESS' });
-      localStorage.removeItem('invoiceItems');
+      //ctxDispatch({ type: 'INVOICE_CLEAR' });
+      //      dispatch({ type: 'CREATE_SUCCESS' });
+      //      localStorage.removeItem('invoiceItems');
       setIsPaying(false);
       setDesval('');
       setDesVal('');
       setRecNum('');
       setRecDat('');
-      setNumval(0);
+      setNumval(' ');
       setAmountval(0);
       //navigate(`/order/${data.order._id}`);
     } catch (err) {
@@ -385,7 +385,7 @@ function App() {
       setDesVal('');
       setRecNum('');
       setRecDat('');
-      setNumval(0);
+      setNumval(' ');
       setAmountval(0);
     }
   };
@@ -393,6 +393,13 @@ function App() {
   const unloadpayment = async () => {
     if (window.confirm('Are you fill all Dates?')) {
     }
+  };
+
+  const clearitems = () => {
+    ctxDispatch({ type: 'INVOICE_CLEAR' });
+    dispatch({ type: 'CREATE_SUCCESS' });
+    localStorage.removeItem('invoiceItems');
+    setShowInvoice(false);
   };
 
   return (
@@ -733,7 +740,7 @@ function App() {
               trigger={() => <Button type="button">Print / Download</Button>}
               content={() => componentRef.current}
             />
-            <Button onClick={() => setShowInvoice(false)}>New Invoice</Button>
+            <Button onClick={() => clearitems()}>New Invoice</Button>
 
             {/* Invoice Preview */}
 

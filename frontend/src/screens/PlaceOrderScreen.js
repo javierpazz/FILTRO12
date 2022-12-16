@@ -53,9 +53,6 @@ export default function PlaceOrderScreen() {
   const stockHandler = async (item) => {
     try {
       dispatch({ type: 'CREATE_REQUEST' });
-      console.log(cart.cartItems);
-      console.log(item);
-      console.log(item.item._id);
       await Axios.put(
         `/api/products/downstock/${item.item._id}`,
         {
@@ -88,6 +85,7 @@ export default function PlaceOrderScreen() {
           taxPrice: cart.taxPrice,
           totalPrice: cart.totalPrice,
           ordYes: 'Y',
+          staOrd: 'NUEVA',
         },
         {
           headers: {

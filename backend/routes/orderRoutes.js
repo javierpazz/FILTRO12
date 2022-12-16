@@ -59,6 +59,7 @@ orderRouter.post(
       totalPrice: req.body.totalPrice,
       user: req.user._id,
       ordYes: req.body.ordYes,
+      staOrd: req.body.staOrd,
     });
 
     const order = await newOrder.save();

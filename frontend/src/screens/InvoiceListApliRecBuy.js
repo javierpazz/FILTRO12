@@ -194,6 +194,17 @@ export default function InvoiceListApliRec({
             </Card.Title>
           </Card.Body>
         </Col>
+        <Col md={1} className="col text-end">
+          <div>
+            <Button
+              type="button"
+              onClick={() => setShow(false)}
+              disable="false"
+            >
+              Cancel
+            </Button>
+          </div>
+        </Col>
 
         <Col md={1} className="col text-end">
           <div>

@@ -223,14 +223,21 @@ function AppBuyRec() {
           },
         }
       );
-      ctxDispatch({ type: 'RECEIPT_CLEAR' });
-      dispatch({ type: 'CREATE_SUCCESS' });
-      localStorage.removeItem('receiptItems');
+      //      ctxDispatch({ type: 'RECEIPT_CLEAR' });
+      //    dispatch({ type: 'CREATE_SUCCESS' });
+      //  localStorage.removeItem('receiptItems');
       //navigate(`/order/${data.order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));
     }
+  };
+
+  const clearitems = () => {
+    ctxDispatch({ type: 'RECEIPT_CLEAR' });
+    dispatch({ type: 'CREATE_SUCCESS' });
+    localStorage.removeItem('receiptItems');
+    setShowReceipt(false);
   };
 
   /////////////////////////////////////////////
@@ -421,7 +428,7 @@ function AppBuyRec() {
               trigger={() => <Button type="button">Print / Download</Button>}
               content={() => componentRef.current}
             />
-            <Button onClick={() => setShowReceipt(false)}>New Receipt</Button>
+            <Button onClick={() => clearitems()}>New Invoice</Button>
 
             {/* receipt Preview */}
 

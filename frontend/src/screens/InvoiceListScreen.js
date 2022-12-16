@@ -90,6 +90,13 @@ export default function InvoiceListScreen() {
   const [show, setShow] = useState(false);
   const [invoice, setInvoice] = useState('');
 
+  const [invId, setInvId] = useState('');
+  const [name, setName] = useState('');
+  const [remNum, setRemNum] = useState('');
+  const [invNum, setInvNum] = useState('');
+  const [ordNum, setOrdNum] = useState('');
+  const [invDat, setInvDat] = useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -253,7 +260,7 @@ export default function InvoiceListScreen() {
                     <Button
                       type="button"
                       title="Add or Change Invoice or Remit Number"
-                      onClick={() => handleShow(invoice._id)}
+                      onClick={() => handleShow(invoice)}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
@@ -261,7 +268,7 @@ export default function InvoiceListScreen() {
                     <Button
                       type="button"
                       title="Delete"
-                      onClick={() => deleteHandler(invoice)}
+                      onClick={() => deleteHandler(invoice._id)}
                     >
                       <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
@@ -289,7 +296,7 @@ export default function InvoiceListScreen() {
           >
             <Modal.Header closeButton>
               <Modal.Title id="example-modal-sizes-title-lg">
-                Change REmit Invoice Number of {invoice}
+                Change Remit Invoice Number of {invoice._id}
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>

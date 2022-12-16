@@ -16,34 +16,33 @@ import { getError } from '../utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'TOTAL_FETCH_REQUEST':
-      return { ...state, loading: true };
-    case 'TOTAL_FETCH_SUCCESS':
+    case 'VALUE_FETCH_REQUEST':
+      return { ...state, loadingVal: true };
+    case 'VALUE_FETCH_SUCCESS':
       return {
         ...state,
-        invoices: action.payload,
-        loading: false,
+        values: action.payload.values,
+        pageVal: action.payload.page,
+        pagesVal: action.payload.pages,
+        loadingVal: false,
       };
-    case 'TOTAL_FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload };
+    case 'VALUE_FETCH_FAIL':
+      return { ...state, loadingVal: false, error: action.payload };
 
-    case 'DELETE_REQUEST':
-      return { ...state, loadingDelete: true, successDelete: false };
-    case 'DELETE_SUCCESS':
-      return {
-        ...state,
-        loadingDelete: false,
-        successDelete: true,
-      };
-    case 'DELETE_FAIL':
-      return { ...state, loadingDelete: false };
-    case 'DELETE_RESET':
-      return { ...state, loadingDelete: false, successDelete: false };
     default:
       return state;
   }
 };
-export default function InvoiceListChaNum({ invoice, show, setShow }) {
+export default function OrderState({ invoice, show, setShow }) {
+  const [
+    { loading, error, values, pages, loadingVal, loadingDelete, successDelete },
+    dispatch,
+  ] = useReducer(reducer, {
+    loading: true,
+    loadingVal: true,
+    error: '',
+  });
+
   const { state } = useContext(Store);
   const { userInfo } = state;
   const [total, setTotal] = useState(invoice.totalPrice);
@@ -51,22 +50,37 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
   const [name, setName] = useState(invoice.user.name);
   const [remNum, setRemNum] = useState(invoice.remNum);
   const [invNum, setInvNum] = useState(invoice.invNum);
-  const [remNumAux, setRemNumAux] = useState(invoice.remNum);
-  const [invNumAux, setInvNumAux] = useState(invoice.invNum);
-  const [invDat, setInvDat] = useState(invoice.invDat);
+  const [createdAt, setCreatedAt] = useState(invoice.createdAt);
+  const [codval, setCodval] = useState('');
+  const [desval, setDesval] = useState('');
   const [staOrd, setStaOrd] = useState(invoice.staOrd);
+  const [staOrdAux, setStaOrdAux] = useState(invoice.staOrd);
+  const [valuess, setValuess] = useState([]);
+  const [valueeR, setValueeR] = useState('');
 
   const LoadInvoice = (invoice) => {
     setInvId(invoice._id);
     setTotal(invoice.totalPrice);
     setName(invoice.user.name);
-    setRemNumAux(invoice.remNum);
-    setInvNumAux(invoice.invNum);
     setRemNum(invoice.remNum);
     setInvNum(invoice.invNum);
-    setInvDat(invoice.invDat);
+    setCreatedAt(invoice.createdAt);
     setStaOrd(invoice.staOrd);
+    setStaOrdAux(invoice.staOrd);
   };
+
+  useEffect(() => {
+    const fetchDataVal = async () => {
+      try {
+        const { data } = await axios.get(`/api/valuees/`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setValuess(data);
+        dispatch({ type: 'VALUE_FETCH_SUCCESS', payload: data });
+      } catch (err) {}
+    };
+    fetchDataVal();
+  }, []);
 
   useEffect(() => {
     LoadInvoice(invoice);
@@ -74,16 +88,17 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
     console.log(invoice.totalPrice);
   }, []);
 
-  const applyHandler = () => {
+  const stateHandler = () => {
     if (window.confirm('Are you sure to Change?')) {
-      applyChange(invId);
+      setStaOrdAux(staOrd);
+      applyState(invId);
       setShow(false);
 
       //navigate(`/admin/invoicesRec`);
     }
   };
 
-  const applyChange = async (invoiceId) => {
+  const applyState = async (invoiceId) => {
     try {
       //          dispatch({ type: 'UPDATE_REQUEST' });
       await axios.put(
@@ -106,6 +121,18 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
     }
   };
 
+  const searchValue = (codVal) => {
+    const valuesRow = valuess.find((row) => row._id === codVal);
+    setValueeR(valuesRow);
+    setCodval(valuesRow.codVal);
+    setDesval(valuesRow.desVal);
+    setStaOrd(valuesRow.desVal);
+  };
+
+  const handleValueChange = (e) => {
+    searchValue(e.target.value);
+  };
+
   return (
     <div>
       <Helmet>
@@ -120,7 +147,7 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
               <Card.Title>
                 <Form.Group className="input">
                   <Form.Label>Invoice N°</Form.Label>
-                  <p>{invNumAux}</p>
+                  <p>{invNum}</p>
                 </Form.Group>
               </Card.Title>
             </Card.Body>
@@ -129,8 +156,8 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input">
-                  <Form.Label>Invoice Date</Form.Label>
-                  <p>{invDat}</p>
+                  <Form.Label>Order Date</Form.Label>
+                  <p>{createdAt}</p>
                 </Form.Group>
               </Card.Title>
             </Card.Body>
@@ -140,7 +167,7 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
               <Card.Title>
                 <Form.Group className="input">
                   <Form.Label>Remit N°</Form.Label>
-                  <p>{remNumAux}</p>
+                  <p>{remNum}</p>
                 </Form.Group>
               </Card.Title>
             </Card.Body>
@@ -149,18 +176,8 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input">
-                  <Form.Label>Order</Form.Label>
-                  <p>{invId}</p>
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-          <Col md={3}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="input">
-                  <Form.Label>Client</Form.Label>
-                  <p>{name}</p>
+                  <Form.Label>Order State</Form.Label>
+                  <p>{staOrdAux}</p>
                 </Form.Group>
               </Card.Title>
             </Card.Body>
@@ -177,48 +194,37 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
           </Col>
         </Row>
 
-        <h3>New Numbers</h3>
+        <h3>State Order</h3>
         <Row>
-          <Col md={1}>
-            <Card.Body>
-              <Card.Title>
-                <Form.Group className="input" controlId="name">
-                  <Form.Label>Invoice N°</Form.Label>
-                  <Form.Control
-                    className="input"
-                    placeholder="Invoice N°"
-                    value={invNum}
-                    onChange={(e) => setInvNum(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-              </Card.Title>
-            </Card.Body>
-          </Col>
-          <Col md={2}>
+          <Col md={4}>
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input"></Form.Group>
               </Card.Title>
             </Card.Body>
           </Col>
-          <Col md={1}>
+
+          <Col md={2}>
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input" controlId="name">
-                  <Form.Label>Remit N°</Form.Label>
-                  <Form.Control
+                  <Form.Label>Values</Form.Label>
+                  <Form.Select
                     className="input"
-                    placeholder="Remit N°"
-                    value={remNum}
-                    onChange={(e) => setRemNum(e.target.value)}
-                    required
-                  />
+                    onClick={(e) => handleValueChange(e)}
+                  >
+                    {valuess.map((elementoV) => (
+                      <option key={elementoV._id} value={elementoV._id}>
+                        {elementoV.desVal}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </Form.Group>
               </Card.Title>
             </Card.Body>
           </Col>
-          <Col md={5}>
+
+          <Col md={3}>
             <Card.Body>
               <Card.Title>
                 <Form.Group className="input"></Form.Group>
@@ -239,7 +245,7 @@ export default function InvoiceListChaNum({ invoice, show, setShow }) {
           </Col>
           <Col md={1} className="col text-end">
             <div>
-              <Button type="button" onClick={applyHandler} disable="false">
+              <Button type="button" onClick={stateHandler} disable="false">
                 Change
               </Button>
             </div>

@@ -65,6 +65,7 @@ const invoiceSchema = new mongoose.Schema(
     cotNum: { type: Number },
     cotDat: { type: Date },
     ordYes: { type: String },
+    staOrd: { type: String },
   },
   {
     timestamps: true,
