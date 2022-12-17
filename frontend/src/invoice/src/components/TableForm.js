@@ -177,9 +177,8 @@ export default function TableForm({
                         disabled={isPaying}
                       >
                         {productss.map((elemento) => (
-                          <option key={elemento._id} value={elemento._id}>
-                            {elemento._id}+{elemento.name}+
-                            {elemento.countInStock}+{elemento.price}
+                          <option key={elemento.name} value={elemento._id}>
+                            {elemento.name}
                           </option>
                         ))}
                       </Form.Select>

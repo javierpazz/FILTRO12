@@ -11,7 +11,7 @@ userRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({});
+    const users = await User.find({}).sort({ name: 1 });
     res.send(users);
   })
 );

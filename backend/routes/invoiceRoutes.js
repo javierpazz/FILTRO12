@@ -1,6 +1,7 @@
 import express from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import Invoice from '../models/invoiceModel.js';
+import Receipt from '../models/receiptModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
 import { isAuth, isAdmin, mailgun, payInvoiceEmailTemplate } from '../utils.js';
@@ -68,6 +69,29 @@ invoiceRouter.get(
       'name'
     );
     res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
+  '/ctaS/:userId',
+
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const factura = 'SALE';
+    const invoices = await Invoice.find();
+
+    const ctacte = await Receipt.aggregate([
+      { $match: { salbuy: factura } },
+      {
+        $unionWith: {
+          coll: 'invoices',
+          pipeline: [{ $match: { salbuy: factura } }],
+        },
+      },
+    ]);
+
+    res.send(ctacte);
   })
 );
 

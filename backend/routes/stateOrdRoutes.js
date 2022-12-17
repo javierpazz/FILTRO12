@@ -6,7 +6,7 @@ import { isAuth, isAdmin } from '../utils.js';
 const stateOrdRouter = express.Router();
 
 stateOrdRouter.get('/', async (req, res) => {
-  const stateOrds = await StateOrd.find();
+  const stateOrds = await StateOrd.find().sort({ name: 1 });
   res.send(stateOrds);
 });
 

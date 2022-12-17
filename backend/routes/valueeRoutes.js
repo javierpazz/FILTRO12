@@ -6,7 +6,7 @@ import { isAuth, isAdmin } from '../utils.js';
 const valueeRouter = express.Router();
 
 valueeRouter.get('/', async (req, res) => {
-  const valuees = await Valuee.find();
+  const valuees = await Valuee.find().sort({ desVal: 1 });
   res.send(valuees);
 });
 

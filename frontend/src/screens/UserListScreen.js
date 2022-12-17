@@ -4,6 +4,13 @@ import Button from 'react-bootstrap/Button';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import {
+  AiOutlineDelete,
+  AiOutlineEdit,
+  AiFillPrinter,
+  AiOutlineMail,
+} from 'react-icons/ai';
+
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
 import { Store } from '../Store';
@@ -95,6 +102,9 @@ export default function UserListScreen() {
       }
     }
   };
+
+  const accountShow = (userId) => {};
+
   return (
     <div>
       <Helmet>
@@ -129,18 +139,28 @@ export default function UserListScreen() {
                   <td>
                     <Button
                       type="button"
-                      variant="light"
+                      title="Edit"
                       onClick={() => navigate(`/admin/user/${user._id}`)}
                     >
-                      Edit
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
                     &nbsp;
                     <Button
                       type="button"
-                      variant="light"
+                      title="Account"
+                      onClick={() => {
+                        navigate(`/admin/client/${user._id}`);
+                      }}
+                    >
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Delete"
                       onClick={() => deleteHandler(user)}
                     >
-                      Delete
+                      <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
                   </td>
                 </tr>

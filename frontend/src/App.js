@@ -31,6 +31,8 @@ import DashboardScreen from './screens/DashboardScreen';
 import AdminRoute from './components/AdminRoute';
 import ProductListScreen from './screens/ProductListScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
+
+import AccountUserScreen from './screens/AccountUserScreen';
 import InvoiceListScreen from './screens/InvoiceListScreen';
 import InvoiceBuyListScreen from './screens/InvoiceBuyListScreen';
 import ReceiptListScreen from './screens/ReceiptListScreen';
@@ -446,6 +448,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <ConfigurationEditScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/client/:id"
+                element={
+                  <AdminRoute>
+                    <AccountUserScreen />
                   </AdminRoute>
                 }
               ></Route>
