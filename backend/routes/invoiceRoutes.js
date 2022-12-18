@@ -1,5 +1,6 @@
 import express from 'express';
 import expressAsyncHandler from 'express-async-handler';
+import mongodb from 'mongodb';
 import Invoice from '../models/invoiceModel.js';
 import Receipt from '../models/receiptModel.js';
 import User from '../models/userModel.js';
@@ -7,6 +8,7 @@ import Product from '../models/productModel.js';
 import { isAuth, isAdmin, mailgun, payInvoiceEmailTemplate } from '../utils.js';
 
 const invoiceRouter = express.Router();
+const { ObjectId } = mongodb;
 
 invoiceRouter.get(
   '/',
@@ -82,11 +84,35 @@ invoiceRouter.get(
     const invoices = await Invoice.find();
 
     const ctacte = await Receipt.aggregate([
-      { $match: { salbuy: factura } },
+      {
+        $match: {
+          $and: [{ user: ObjectId(req.params.userId) }, { salbuy: factura }],
+        },
+      },
+      {
+        $set: {
+          docDat: '$recDat',
+          importeRec: '$totalPrice',
+        },
+      },
       {
         $unionWith: {
           coll: 'invoices',
-          pipeline: [{ $match: { salbuy: factura } }],
+          pipeline: [
+            {
+              $match: {
+                $and: [
+                  { user: ObjectId(req.params.userId) },
+                  { salbuy: factura },
+                ],
+              },
+            },
+            {
+              $set: {
+                docDat: '$invDat',
+              },
+            },
+          ],
         },
       },
     ]);
