@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import { toast } from 'react-toastify';
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import { Store } from '../Store';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
@@ -177,20 +178,30 @@ export default function SupplierListScreen() {
                   <td>
                     <Button
                       type="button"
-                      variant="light"
+                      title="Edit"
                       onClick={() =>
                         navigate(`/admin/supplier/${supplier._id}`)
                       }
                     >
-                      Edit
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
                     &nbsp;
                     <Button
                       type="button"
-                      variant="light"
+                      title="Account"
+                      onClick={() => {
+                        navigate(`/admin/suppli/${supplier._id}`);
+                      }}
+                    >
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                    </Button>
+                    &nbsp;
+                    <Button
+                      type="button"
+                      title="Delete"
                       onClick={() => deleteHandler(supplier)}
                     >
-                      Delete
+                      <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
                   </td>
                 </tr>

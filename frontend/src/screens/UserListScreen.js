@@ -4,12 +4,7 @@ import Button from 'react-bootstrap/Button';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import {
-  AiOutlineDelete,
-  AiOutlineEdit,
-  AiFillPrinter,
-  AiOutlineMail,
-} from 'react-icons/ai';
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';

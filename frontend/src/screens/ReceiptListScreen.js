@@ -136,8 +136,10 @@ export default function ReceiptListScreen() {
     setShow(true);
   };
 
-  const deleteHandler = async (receipt) => {
+  const deleteReceipt = async (receipt) => {
     if (window.confirm('Are you sure to delete?')) {
+      // buscar todas loock at the invoices that have a receipt and modify de numRec by null
+
       try {
         dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/receipts/${receipt._id}`, {
@@ -247,7 +249,7 @@ export default function ReceiptListScreen() {
                     <Button
                       type="button"
                       title="Delete"
-                      onClick={() => deleteHandler(receipt)}
+                      onClick={() => deleteReceipt(receipt)}
                     >
                       <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>

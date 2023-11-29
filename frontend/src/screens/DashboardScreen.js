@@ -50,6 +50,40 @@ export default function DashboardScreen() {
     fetchData();
   }, [userInfo]);
 
+  const optionsPrIO = {
+    title: 'Inputs & Outputs Products',
+    curveType: 'function',
+    legend: { position: 'bottom' },
+  };
+
+  const optionsBuOu = {
+    title: 'Buys & Outputs',
+    curveType: 'function',
+    legend: { position: 'bottom' },
+  };
+
+  const optionsSaIn = {
+    title: 'Sales & Inputs',
+    curveType: 'function',
+    legend: { position: 'bottom' },
+  };
+
+  const optionsMon = {
+    title: 'Money Flow',
+    curveType: 'function',
+    legend: { position: 'bottom' },
+  };
+
+  const optionsSal = {
+    title: 'Sales & Buys',
+    curveType: 'function',
+    legend: { position: 'bottom' },
+  };
+  const optionsCat = {
+    title: 'Categories',
+    is3D: true,
+  };
+
   return (
     <div>
       <h1>Dashboard</h1>
@@ -98,40 +132,162 @@ export default function DashboardScreen() {
               </Card>
             </Col>
           </Row>
-          <div className="my-3">
-            <h2>Sales</h2>
+          <Row>
             {summary.dailyOrders.length === 0 ? (
               <MessageBox>No Sale</MessageBox>
             ) : (
-              <Chart
-                width="100%"
-                height="400px"
-                chartType="AreaChart"
-                loader={<div>Loading Chart...</div>}
-                data={[
-                  ['Date', 'Sales'],
-                  ...summary.dailyOrders.map((x) => [x._id, x.sales]),
-                ]}
-              ></Chart>
+              <Col md={12}>
+                <Card>
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="300px"
+                      chartType="LineChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Date', 'Sales', 'Buys'],
+                        ...summary.dailyOrders.map((x) => [
+                          x._id,
+                          x.sales,
+                          x.buys,
+                        ]),
+                      ]}
+                      options={optionsSal}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
             )}
-          </div>
-          <div className="my-3">
-            <h2>Categories</h2>
+            {summary.dailyMoney.length === 0 ? (
+              <MessageBox>No Money</MessageBox>
+            ) : (
+              <Col md={12}>
+                <Card>
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="300px"
+                      chartType="LineChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Date', '$ Inputs', '$ Outputs'],
+                        ...summary.dailyMoney.map((x) => [
+                          x._id,
+                          x.inputs,
+                          x.outputs,
+                        ]),
+                      ]}
+                      options={optionsMon}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
+
+            {summary.ctacte.length === 0 ? (
+              <MessageBox>No Data</MessageBox>
+            ) : (
+              <Col md={12}>
+                <Card>
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="300px"
+                      chartType="LineChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Date', '$ Sales', '$ Inputs'],
+                        ...summary.ctacte.map((x) => [
+                          x._id,
+                          x.salesS,
+                          x.inputsS,
+                        ]),
+                      ]}
+                      options={optionsSaIn}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
+
+            {summary.ctacte.length === 0 ? (
+              <MessageBox>No Data</MessageBox>
+            ) : (
+              <Col md={12}>
+                <Card>
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="300px"
+                      chartType="LineChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Date', '$ Buys', '$ Outputs'],
+                        ...summary.ctacte.map((x) => [
+                          x._id,
+                          x.salesB,
+                          x.inputsB,
+                        ]),
+                      ]}
+                      options={optionsBuOu}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
+
+            {summary.producIO.length === 0 ? (
+              <MessageBox>No Data</MessageBox>
+            ) : (
+              <Col md={12}>
+                <Card>
+                  {console.log(summary.producIO)}
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="300px"
+                      chartType="LineChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Date', '$ Inputs', '$ Outputs'],
+                        ...summary.producIO.map((x) => [
+                          x._id,
+                          x.entro,
+                          x.salio,
+                        ]),
+                      ]}
+                      options={optionsPrIO}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
+
             {summary.productCategories.length === 0 ? (
               <MessageBox>No Category</MessageBox>
             ) : (
-              <Chart
-                width="100%"
-                height="400px"
-                chartType="PieChart"
-                loader={<div>Loading Chart...</div>}
-                data={[
-                  ['Category', 'Products'],
-                  ...summary.productCategories.map((x) => [x._id, x.count]),
-                ]}
-              ></Chart>
+              <Col md={4}>
+                <Card>
+                  <Card.Body>
+                    <Chart
+                      width="100%"
+                      height="400px"
+                      chartType="PieChart"
+                      loader={<div>Loading Chart...</div>}
+                      data={[
+                        ['Category', 'Products'],
+                        ...summary.productCategories.map((x) => [
+                          x._id,
+                          x.count,
+                        ]),
+                      ]}
+                      options={optionsCat}
+                    ></Chart>
+                  </Card.Body>
+                </Card>
+              </Col>
             )}
-          </div>
+          </Row>
         </>
       )}
     </div>

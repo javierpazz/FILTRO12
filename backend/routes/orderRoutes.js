@@ -1,6 +1,7 @@
 import express from 'express';
 import expressAsyncHandler from 'express-async-handler';
 import Invoice from '../models/invoiceModel.js';
+import Receipt from '../models/receiptModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
 import { isAuth, isAdmin, mailgun, payOrderEmailTemplate } from '../utils.js';
@@ -28,11 +29,13 @@ orderRouter.get(
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE;
 
-    const orders = await Invoice.find({ ordYes: 'Y', salbuy: null })
+    const orders = await Invoice.find({ ordYes: 'Y' })
       .populate('user', 'name')
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-    const countOrders = await Invoice.countDocuments();
+    const countOrders = await Invoice.countDocuments({
+      ordYes: 'Y',
+    });
     res.send({
       orders,
       countOrders,
@@ -72,6 +75,80 @@ orderRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
+    const producIO = await Invoice.aggregate([
+      { $unwind: '$invoiceItems' },
+
+      {
+        $set: {
+          salio1: {
+            $cond: [{ $eq: ['$salbuy', 'SALE'] }, '$invoiceItems.quantity', 0],
+          },
+          entro1: {
+            $cond: [{ $eq: ['$salbuy', 'BUY'] }, '$invoiceItems.quantity', 0],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$invoiceItems.name',
+          salio: { $sum: '$salio1' },
+          entro: { $sum: '$entro1' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    /////////////////////////////////////////////////////////
+    const factura = 'SALE';
+    const invoices = await Invoice.find();
+
+    const ctacte = await Receipt.aggregate([
+      //      {
+      //        $match: {
+      //          salbuy: factura,
+      //        },
+      ////      },
+      {
+        $set: {
+          docDat: '$recDat',
+          importeRec: '$totalPrice',
+          importeRecB: '$totalBuy',
+        },
+      },
+      {
+        $unionWith: {
+          coll: 'invoices',
+          pipeline: [
+            //            {
+            //              $match: {
+            //                salbuy: factura,
+            //              },
+            //            },
+            {
+              $set: {
+                docDat: '$invDat',
+                importeInv: '$totalPrice',
+                importeInvB: '$totalBuy',
+              },
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$docDat' } },
+          salesS: { $sum: '$importeInv' },
+          inputsS: { $sum: '$importeRec' },
+          salesB: { $sum: '$importeInvB' },
+          inputsB: { $sum: '$importeRecB' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    //      res.send(ctacte);
+    /////////////////////////////////////////////////////////
+
     const orders = await Invoice.aggregate([
       {
         $group: {
@@ -92,9 +169,20 @@ orderRouter.get(
     const dailyOrders = await Invoice.aggregate([
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$invDat' } },
           orders: { $sum: 1 },
           sales: { $sum: '$totalPrice' },
+          buys: { $sum: '$totalBuy' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+    const dailyMoney = await Receipt.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$recDat' } },
+          inputs: { $sum: '$totalPrice' },
+          outputs: { $sum: '$totalBuy' },
         },
       },
       { $sort: { _id: 1 } },
@@ -107,7 +195,15 @@ orderRouter.get(
         },
       },
     ]);
-    res.send({ users, orders, dailyOrders, productCategories });
+    res.send({
+      producIO,
+      ctacte,
+      users,
+      orders,
+      dailyOrders,
+      dailyMoney,
+      productCategories,
+    });
   })
 );
 

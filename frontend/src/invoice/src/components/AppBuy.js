@@ -9,7 +9,7 @@ import MainDetails from './MainDetails';
 import Notes from './Notes';
 import Table from './Table';
 import { toast } from 'react-toastify';
-import TableForm from './TableForm';
+import TableFormBuy from './TableFormBuy';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
@@ -169,6 +169,7 @@ function AppBuy() {
   }, []);
 
   useEffect(() => {
+    clearitems();
     const fetchDataVal = async () => {
       try {
         const { data } = await axios.get(`/api/suppliers/`, {
@@ -241,8 +242,10 @@ function AppBuy() {
         //        invoice.shippingPrice =
         //        invoice.itemsPrice > 100 ? round2(0) : round2(10);
         invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
-        invoice.totalPrice =
+        invoice.totalBuy =
           invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+        invoice.totalPrice = 0;
+
         invoice.codSup = codSup;
         invoice.remNum = remNum;
         invoice.invNum = invNum;
@@ -254,6 +257,7 @@ function AppBuy() {
 
         if (recNum && recDat && desVal) {
           receipt.totalPrice = invoice.totalPrice;
+          receipt.totalBuy = invoice.totalBuy;
           receipt.codSup = invoice.codSup;
           receipt.recNum = invoice.recNum;
           receipt.recDat = invoice.recDat;
@@ -298,6 +302,7 @@ function AppBuy() {
           shippingPrice: receipt.shippingPrice,
           taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
+          totalBuy: receipt.totalBuy,
 
           //          codUse: receipt.codUse,
 
@@ -365,6 +370,7 @@ function AppBuy() {
           shippingPrice: invoice.shippingPrice,
           taxPrice: invoice.taxPrice,
           totalPrice: invoice.totalPrice,
+          totalBuy: invoice.totalBuy,
 
           codSup: invoice.codSup,
 
@@ -422,6 +428,7 @@ function AppBuy() {
     ctxDispatch({ type: 'INVOICE_CLEAR' });
     dispatch({ type: 'CREATE_SUCCESS' });
     localStorage.removeItem('invoiceItems');
+    localStorage.removeItem('receiptItems');
     setShowInvoice(false);
   };
 
@@ -716,10 +723,7 @@ function AppBuy() {
                           <ListGroup.Item>
                             <h3>
                               Total: $
-                              {invoiceItems.reduce(
-                                (a, c) => a + c.price * c.quantity,
-                                0
-                              )}
+                              {amountval}
                             </h3>
                           </ListGroup.Item>
                         </Card.Title>
@@ -730,7 +734,7 @@ function AppBuy() {
 
                 {/* This is our table form */}
                 <article>
-                  <TableForm
+                  <TableFormBuy
                     codPro={codPro}
                     setCodPro={setCodPro}
                     desPro={desPro}

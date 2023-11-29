@@ -34,7 +34,7 @@ receiptRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const receipts = await Receipt.find({ salbuy: 'SALE' }).populate(
+    const receipts = await Receipt.find({ salbuy: 'BUY' }).populate(
       'user',
       'name'
     );
@@ -103,6 +103,7 @@ receiptRouter.post(
       })),
       itemsPrice: req.body.itemsPrice,
       totalPrice: req.body.totalPrice,
+      totalBuy: req.body.totalBuy,
       user: req.body.codUse,
       supplier: req.body.codSup,
       recNum: req.body.recNum,

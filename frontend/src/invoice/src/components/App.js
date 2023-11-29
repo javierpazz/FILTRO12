@@ -141,6 +141,7 @@ function App() {
   }, [invoiceItems, numval, desval, recNum, recDat]);
 
   useEffect(() => {
+    clearitems();
     const fetchData = async () => {
       try {
         const { data } = await axios.get(`/api/users/`, {
@@ -214,6 +215,7 @@ function App() {
         invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
         invoice.totalPrice =
           invoice.itemsPrice + invoice.shippingPrice + invoice.taxPrice;
+        invoice.totalBuy = 0;
         invoice.codUse = codUse;
 
         invoice.codSup = '0';
@@ -227,6 +229,7 @@ function App() {
 
         if (recNum && recDat && desVal) {
           receipt.totalPrice = invoice.totalPrice;
+          receipt.totalBuy = invoice.totalBuy;
           receipt.codUse = invoice.codUse;
           receipt.codSup = '0';
           receipt.recNum = invoice.recNum;
@@ -271,6 +274,7 @@ function App() {
           shippingPrice: receipt.shippingPrice,
           taxPrice: receipt.taxPrice,
           totalPrice: receipt.totalPrice,
+          totalBuy: receipt.totalBuy,
 
           codUse: receipt.codUse,
 
@@ -340,6 +344,7 @@ function App() {
           shippingPrice: invoice.shippingPrice,
           taxPrice: invoice.taxPrice,
           totalPrice: invoice.totalPrice,
+          totalBuy: invoice.totalBuy,
 
           codUse: invoice.codUse,
 
@@ -399,6 +404,7 @@ function App() {
     ctxDispatch({ type: 'INVOICE_CLEAR' });
     dispatch({ type: 'CREATE_SUCCESS' });
     localStorage.removeItem('invoiceItems');
+    localStorage.removeItem('receiptItems');
     setShowInvoice(false);
   };
 
@@ -694,10 +700,7 @@ function App() {
                           <ListGroup.Item>
                             <h3>
                               Total: $
-                              {invoiceItems.reduce(
-                                (a, c) => a + c.price * c.quantity,
-                                0
-                              )}
+                              {amountval}
                             </h3>
                           </ListGroup.Item>
                         </Card.Title>

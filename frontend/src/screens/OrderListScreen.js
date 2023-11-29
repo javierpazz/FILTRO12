@@ -86,22 +86,31 @@ export default function OrderListScreen() {
     } else {
       fetchData();
     }
-  }, [page, userInfo, successDelete]);
+  }, [page, userInfo, successDelete, show]);
+
+  const noDelOrder = async () => {
+    if (window.confirm('This Order Have an Invoice Or Remit')) {
+    }
+  };
 
   const deleteHandler = async (order) => {
-    if (window.confirm('Are you sure to delete?')) {
-      try {
-        dispatch({ type: 'DELETE_REQUEST' });
-        await axios.delete(`/api/orders/${order._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        toast.success('order deleted successfully');
-        dispatch({ type: 'DELETE_SUCCESS' });
-      } catch (err) {
-        toast.error(getError(error));
-        dispatch({
-          type: 'DELETE_FAIL',
-        });
+    if (order.remNum || order.invNum) {
+      noDelOrder();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'DELETE_REQUEST' });
+          await axios.delete(`/api/orders/${order._id}`, {
+            headers: { Authorization: `Bearer ${userInfo.token}` },
+          });
+          toast.success('order deleted successfully');
+          dispatch({ type: 'DELETE_SUCCESS' });
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'DELETE_FAIL',
+          });
+        }
       }
     }
   };
@@ -134,7 +143,7 @@ export default function OrderListScreen() {
                 <th>USER</th>
                 <th>DATE</th>
                 <th>TOTAL</th>
-                <th>PAID</th>
+                <th>INVOICE</th>
                 <th>STATE</th>
                 <th>ACTIONS</th>
               </tr>
@@ -146,7 +155,7 @@ export default function OrderListScreen() {
                   <td>{order.user ? order.user.name : 'DELETED CLIENT'}</td>
                   <td>{order.createdAt.substring(0, 10)}</td>
                   <td>{order.totalPrice.toFixed(2)}</td>
-                  <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
+                  <td>{order.invNum}</td>
                   <td>{order.staOrd}</td>
 
                   <td>
@@ -185,6 +194,7 @@ export default function OrderListScreen() {
                       type="button"
                       title="Invoice Order"
                       onClick={() => handleShow(order._id)}
+                      disabled={order.invNum}
                     >
                       <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>

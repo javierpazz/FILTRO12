@@ -176,9 +176,9 @@ export default function TableForm({
                         onClick={(e) => handleChange(e)}
                         disabled={isPaying}
                       >
-                        {productss.map((elemento) => (
-                          <option key={elemento.name} value={elemento._id}>
-                            {elemento.name}
+                        {productss.map((elementoP) => (
+                          <option key={elementoP.id} value={elementoP._id}>
+                            {elementoP.name}
                           </option>
                         ))}
                       </Form.Select>

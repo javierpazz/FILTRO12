@@ -63,6 +63,7 @@ invoiceRouter.get(
 
 invoiceRouter.get(
   '/S',
+  // back de S que esta abajo
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
@@ -70,6 +71,30 @@ invoiceRouter.get(
       'user',
       'name'
     );
+    res.send(invoices);
+  })
+);
+
+invoiceRouter.get(
+  '/SSSSSS',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const invoices = await Invoice.aggregate([
+      { $unwind: '$invoiceItems' },
+
+      {
+        $set: {
+          salio: {
+            $cond: [{ $eq: ['$salbuy', 'SALE'] }, '$invoiceItems.quantity', 0],
+          },
+          entro: {
+            $cond: [{ $eq: ['$salbuy', 'BUY'] }, '$invoiceItems.quantity', 0],
+          },
+        },
+      },
+    ]);
+
     res.send(invoices);
   })
 );
@@ -103,6 +128,56 @@ invoiceRouter.get(
               $match: {
                 $and: [
                   { user: ObjectId(req.params.userId) },
+                  { salbuy: factura },
+                ],
+              },
+            },
+            {
+              $set: {
+                docDat: '$invDat',
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    res.send(ctacte);
+  })
+);
+
+invoiceRouter.get(
+  '/ctaB/:suppliId',
+
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req, res) => {
+    const factura = 'BUY';
+    const invoices = await Invoice.find();
+
+    const ctacte = await Receipt.aggregate([
+      {
+        $match: {
+          $and: [
+            { supplier: ObjectId(req.params.suppliId) },
+            { salbuy: factura },
+          ],
+        },
+      },
+      {
+        $set: {
+          docDat: '$recDat',
+          importeRec: '$totalPrice',
+        },
+      },
+      {
+        $unionWith: {
+          coll: 'invoices',
+          pipeline: [
+            {
+              $match: {
+                $and: [
+                  { supplier: ObjectId(req.params.suppliId) },
                   { salbuy: factura },
                 ],
               },
@@ -186,6 +261,7 @@ invoiceRouter.post(
       shippingPrice: req.body.shippingPrice,
       taxPrice: req.body.taxPrice,
       totalPrice: req.body.totalPrice,
+      totalBuy: req.body.totalBuy,
       user: req.body.codUse,
       supplier: req.body.codSup,
       remNum: req.body.remNum,
@@ -279,6 +355,29 @@ invoiceRouter.put(
       invoice.invNum = req.body.invNum;
       invoice.staOrd = req.body.staOrd;
       await invoice.save();
+      res.send({ message: 'Remit Invoice Number Changed successfully' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
+  })
+);
+
+invoiceRouter.put(
+  '/:id/deleteinvoice',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      (invoice.remNum = null),
+        (invoice.invNum = null),
+        (invoice.invDat = null),
+        (invoice.recNum = null),
+        (invoice.recDat = null),
+        (invoice.desVal = null),
+        (invoice.notes = null),
+        (invoice.salbuy = null),
+        await invoice.save();
       res.send({ message: 'Remit Invoice Number Changed successfully' });
     } else {
       res.status(404).send({ message: 'Invoice Not Found' });

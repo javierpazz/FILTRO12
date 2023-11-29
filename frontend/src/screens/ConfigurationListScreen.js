@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import { toast } from 'react-toastify';
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import { Store } from '../Store';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
@@ -178,20 +179,20 @@ export default function ConfigurationListScreen() {
                   <td>
                     <Button
                       type="button"
-                      variant="light"
+                      title="Edit"
                       onClick={() =>
                         navigate(`/admin/configuration/${configuration._id}`)
                       }
                     >
-                      Edit
+                      <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
                     </Button>
                     &nbsp;
                     <Button
                       type="button"
-                      variant="light"
+                      title="Delete"
                       onClick={() => deleteHandler(configuration)}
                     >
-                      Delete
+                      <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
                   </td>
                 </tr>

@@ -46,13 +46,27 @@ const reducer = (state, action) => {
       return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
       return { ...state, loadingDelete: false, successDelete: false };
+    case 'UPDATE_REQUEST':
+      return { ...state, loadingUpdate: true };
+    case 'UPDATE_SUCCESS':
+      return { ...state, loadingUpdate: false };
+    case 'UPDATE_FAIL':
+      return { ...state, loadingUpdate: false };
+
     default:
       return state;
   }
 };
 export default function AccountUserScreen() {
   const [
-    { loading, error, invoicesTOT, loadingDelete, successDelete },
+    {
+      loading,
+      error,
+      invoicesTOT,
+      loadingDelete,
+      loadingUpdate,
+      successDelete,
+    },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
@@ -119,20 +133,73 @@ export default function AccountUserScreen() {
     //setShow(true);
   };
 
-  const deleteHandler = async (invoice) => {
-    if (window.confirm('Are you sure to delete?')) {
-      try {
-        dispatch({ type: 'DELETE_REQUEST' });
-        await axios.delete(`/api/invoices/${invoice._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        toast.success('invoice deleted successfully');
-        dispatch({ type: 'DELETE_SUCCESS' });
-      } catch (err) {
-        toast.error(getError(error));
-        dispatch({
-          type: 'DELETE_FAIL',
-        });
+  const aplyReceipt = async () => {};
+
+  const payInvoice = async () => {};
+
+  const noDelInvoice = async () => {
+    if (
+      window.confirm(
+        'This Invoice have a Receipt, You Must delete the receipt Before'
+      )
+    ) {
+    }
+  };
+
+  const deleteInvoice = async (invoice) => {
+    if (invoice.recNum) {
+      noDelInvoice();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'UPDATE_REQUEST' });
+          await axios.put(
+            `/api/invoices/${invoice._id}/deleteinvoice`,
+            {
+              remNum: null,
+              invNum: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            }
+          );
+          dispatch({ type: 'UPDATE_SUCCESS' });
+          toast.success('Invoice deleted successfully');
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'UPDATE_FAIL',
+          });
+        }
+      }
+    }
+  };
+
+  const deleteReceipt = async (invoice) => {
+    if (invoice.recNum) {
+      noDelInvoice();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'UPDATE_REQUEST' });
+          await axios.put(
+            `/api/invoices/${invoice._id}/deleteinvoice`,
+            {
+              remNum: null,
+              invNum: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            }
+          );
+          dispatch({ type: 'UPDATE_SUCCESS' });
+          toast.success('Receipt Applied successfully');
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'UPDATE_FAIL',
+          });
+        }
       }
     }
   };
@@ -151,12 +218,6 @@ export default function AccountUserScreen() {
           <h1>Account</h1>
         </Col>
 
-        <Col>
-          <h3>
-            {total}
-            Total: $
-          </h3>
-        </Col>
         <Col>
           <SearchBox />
         </Col>
@@ -180,22 +241,32 @@ export default function AccountUserScreen() {
           <table className="table">
             <thead>
               <tr>
-                <th>INVOICE</th>
-                <th>INVOICE DATE</th>
-                <th>RECEIPT</th>
-                <th>RECEIPT DATE</th>
-                <th>TOTAL</th>
+                <th>DATE</th>
+                <th>DOCUMENT</th>
+                <th>NUMBER</th>
+                <th>ORDER N°</th>
+                <th>STATE</th>
+                <th>AMOUNT</th>
                 <th>ACTIONS</th>
+                <th>
+                  <h4>Account: ${total}</h4>
+                </th>
               </tr>
             </thead>
             <tbody>
               {invoices?.map((invoice) => (
                 <tr key={invoice._id}>
-                  <td>{invoice.invNum}</td>
-                  <td>{invoice.docDat}</td>
-                  <td>{invoice.invDat}</td>
-                  <td>{invoice.recNum}</td>
-                  <td>{invoice.recDat}</td>
+                  <td>{invoice.docDat.substring(0, 10)}</td>
+                  {invoice.invoiceItems ? <td>Invoice</td> : <td>Receipt</td>}
+                  {invoice.invoiceItems ? (
+                    <td>{invoice.invNum}</td>
+                  ) : (
+                    <td>{invoice.recNum}</td>
+                  )}
+
+                  {invoice.ordYes === 'Y' ? <td>{invoice._id}</td> : <td></td>}
+
+                  <td>{invoice.staOrd}</td>
                   <td>{invoice.totalPrice.toFixed(2)}</td>
 
                   <td>
@@ -264,8 +335,26 @@ export default function AccountUserScreen() {
                     {invoice.invoiceItems ? (
                       <Button
                         type="button"
+                        title="Pay Invoice"
+                        onClick={() => payInvoice(invoice)}
+                      >
+                        <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        title="Aply Invoice "
+                        onClick={() => aplyReceipt(invoice)}
+                      >
+                        <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                      </Button>
+                    )}
+                    &nbsp;
+                    {invoice.invoiceItems ? (
+                      <Button
+                        type="button"
                         title="Delete Invoice"
-                        onClick={() => deleteHandler(invoice._id)}
+                        onClick={() => deleteInvoice(invoice)}
                         //disabled={invoice.invNum < 40}
                       >
                         <AiOutlineDelete className="text-red-500 font-bold text-xl" />
@@ -274,7 +363,7 @@ export default function AccountUserScreen() {
                       <Button
                         type="button"
                         title="Delete Receipt"
-                        onClick={() => deleteHandler(invoice._id)}
+                        onClick={() => deleteReceipt(invoice)}
                         //disabled={invoice.invNum < 40}
                       >
                         <AiOutlineDelete className="text-red-500 font-bold text-xl" />

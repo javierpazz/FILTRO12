@@ -201,7 +201,7 @@ export default function OrderState({ invoice, show, setShow }) {
           </Col>
         </Row>
 
-        <h3>State Order</h3>
+        <h3>New State Order</h3>
         <Row>
           <Col md={4}>
             <Card.Body>

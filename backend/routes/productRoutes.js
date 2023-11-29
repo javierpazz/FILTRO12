@@ -154,6 +154,7 @@ productRouter.get(
     const pageSize = query.pageSize || PAGE_SIZE;
 
     const products = await Product.find()
+      .sort({ name: 1 })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countProducts = await Product.countDocuments();

@@ -107,7 +107,7 @@ export default function InvoiceBuyListScreen() {
       }
     };
     fetchData();
-  }, []);
+  }, [show]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -129,7 +129,7 @@ export default function InvoiceBuyListScreen() {
     } else {
       fetchData();
     }
-  }, [page, userInfo, successDelete]);
+  }, [page, userInfo, successDelete, show]);
 
   const handleShow = (invoice) => {
     setInvoice(invoice);
@@ -156,7 +156,7 @@ export default function InvoiceBuyListScreen() {
 
   const calculatotal = () => {
     let tot = 0;
-    invoicesT?.map((inv) => (tot = tot + inv.priceTotal));
+    invoicesT?.map((inv) => (tot = tot + inv.totalBuy));
     setTotal(tot);
   };
 
@@ -176,9 +176,7 @@ export default function InvoiceBuyListScreen() {
           <h1>Buy Invoices</h1>
         </Col>
         <Col>
-          <h3>
-            Total: ${invoicesT?.reduce((a, c) => a + c.totalPrice * 1, 0)}
-          </h3>
+          <h3>Total: ${invoicesT?.reduce((a, c) => a + c.totalBuy * 1, 0)}</h3>
         </Col>
 
         <Col>
@@ -231,7 +229,7 @@ export default function InvoiceBuyListScreen() {
                   </td>
                   <td>{invoice.recNum ? invoice.recDat : 'No'}</td>
                   <td>{invoice.desVal}</td>
-                  <td>{invoice.totalPrice.toFixed(2)}</td>
+                  <td>{invoice.totalBuy.toFixed(2)}</td>
 
                   <td>
                     <Button

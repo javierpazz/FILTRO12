@@ -85,11 +85,10 @@ export default function AccountUserScreen() {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
-        let kiki = data?.filter((data) => data.user === userId);
-        const sortedList = kiki.sort((a, b) => (a.docDat > b.docDat ? -1 : 0));
-
+        //        let kiki = data?.filter((data) => data.user === userId);
+        const sortedList = data.sort((a, b) => (a.docDat > b.docDat ? -1 : 0));
         setInvoices(sortedList);
-        //        console.log(kiki);
+        console.log(data);
       } catch (err) {
         dispatch({
           type: 'TOTAL_FETCH_FAIL',
@@ -110,7 +109,6 @@ export default function AccountUserScreen() {
       invoice.invoiceItems
         ? (sum = sum - invoice.totalPrice)
         : (sum = sum + invoice.totalPrice);
-      console.log(sum);
     });
 
     setTotal(sum);
@@ -194,6 +192,7 @@ export default function AccountUserScreen() {
               {invoices?.map((invoice) => (
                 <tr key={invoice._id}>
                   <td>{invoice.invNum}</td>
+                  <td>{invoice.docDat}</td>
                   <td>{invoice.invDat}</td>
                   <td>{invoice.recNum}</td>
                   <td>{invoice.recDat}</td>

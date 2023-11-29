@@ -187,8 +187,8 @@ function AppOrd() {
         invoice.itemsPrice = round2(
           invoice.invoiceItems.reduce((a, c) => a + c.quantity * c.price, 0)
         );
-        invoice.shippingPrice = 0;
-
+        // invoice.shippingPrice = 0;
+        invoice.shippingPrice = invoice.itemsPrice > 100 ? round2(0) : round2(10);
         //        invoice.shippingPrice =
         //        invoice.itemsPrice > 100 ? round2(0) : round2(10);
         invoice.taxPrice = round2(0.15 * invoice.itemsPrice);
@@ -274,7 +274,7 @@ function AppOrd() {
       ctxDispatch({ type: 'RECEIPT_CLEAR' });
       dispatch({ type: 'CREATE_SUCCESS' });
       localStorage.removeItem('receiptItems');
-      //navigate(`/order/${data.order._id}`);
+//      navigate(`/order/${order._id}`);
     } catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));

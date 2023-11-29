@@ -121,6 +121,7 @@ function AppBuyRec() {
   }, []);
 
   useEffect(() => {
+    clearitems();
     const fetchDataVal = async () => {
       try {
         const { data } = await axios.get(`/api/suppliers/`, {
@@ -181,7 +182,8 @@ function AppBuyRec() {
       );
       receipt.shippingPrice = receipt.itemsPrice > 100 ? round2(0) : round2(10);
       receipt.taxPrice = round2(0.15 * 0);
-      receipt.totalPrice = receipt.itemsPrice;
+      receipt.totalPrice = 0;
+      receipt.totalBuy = receipt.itemsPrice;
       receipt.codSup = codSup;
       receipt.remNum = remNum;
       receipt.invNum = invNum;
@@ -208,6 +210,7 @@ function AppBuyRec() {
           receiptItems: receipt.receiptItems,
           itemsPrice: receipt.itemsPrice,
           totalPrice: receipt.totalPrice,
+          totalBuy: receipt.totalBuy,
 
           codSup: receipt.codSup,
 

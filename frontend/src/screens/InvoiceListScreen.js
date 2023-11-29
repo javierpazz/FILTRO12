@@ -58,6 +58,13 @@ const reducer = (state, action) => {
       return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
       return { ...state, loadingDelete: false, successDelete: false };
+    case 'UPDATE_REQUEST':
+      return { ...state, loadingUpdate: true };
+    case 'UPDATE_SUCCESS':
+      return { ...state, loadingUpdate: false };
+    case 'UPDATE_FAIL':
+      return { ...state, loadingUpdate: false };
+
     default:
       return state;
   }
@@ -70,6 +77,7 @@ export default function InvoiceListScreen() {
       invoices,
       invoicesT,
       pages,
+      loadingUpdate,
       loadingDelete,
       successDelete,
     },
@@ -114,7 +122,7 @@ export default function InvoiceListScreen() {
       }
     };
     fetchData();
-  }, []);
+  }, [show]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,27 +145,47 @@ export default function InvoiceListScreen() {
     } else {
       fetchData();
     }
-  }, [page, userInfo, successDelete]);
+  }, [page, userInfo, successDelete, show]);
 
   const handleShow = (invoice) => {
     setInvoice(invoice);
     setShow(true);
   };
 
+  const noDelInvoice = async () => {
+    if (
+      window.confirm(
+        'This Invoice have a Receipt, You Must delete the receipt Before'
+      )
+    ) {
+    }
+  };
+
   const deleteHandler = async (invoice) => {
-    if (window.confirm('Are you sure to delete?')) {
-      try {
-        dispatch({ type: 'DELETE_REQUEST' });
-        await axios.delete(`/api/invoices/${invoice._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        toast.success('invoice deleted successfully');
-        dispatch({ type: 'DELETE_SUCCESS' });
-      } catch (err) {
-        toast.error(getError(error));
-        dispatch({
-          type: 'DELETE_FAIL',
-        });
+    if (invoice.recNum) {
+      noDelInvoice();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'UPDATE_REQUEST' });
+          await axios.put(
+            `/api/invoices/${invoice._id}/deleteinvoice`,
+            {
+              remNum: null,
+              invNum: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            }
+          );
+          dispatch({ type: 'UPDATE_SUCCESS' });
+          toast.success('Invoice deleted successfully');
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'UPDATE_FAIL',
+          });
+        }
       }
     }
   };
@@ -229,7 +257,7 @@ export default function InvoiceListScreen() {
                   <td>{invoice.invNum}</td>
                   <td>{invoice.invDat.substring(0, 10)}</td>
                   <td>{invoice.remNum}</td>
-                  <td>{invoice.ordNum}</td>
+                  {invoice.ordYes === 'Y' ? <td>{invoice._id}</td> : <td></td>}
                   <td>{invoice.recNum}</td>
                   <td>{invoice.user ? invoice.user.name : 'DELETED USER'}</td>
                   <td>{invoice.recNum ? invoice.recDat : 'No'}</td>
@@ -268,7 +296,7 @@ export default function InvoiceListScreen() {
                     <Button
                       type="button"
                       title="Delete"
-                      onClick={() => deleteHandler(invoice._id)}
+                      onClick={() => deleteHandler(invoice)}
                     >
                       <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>

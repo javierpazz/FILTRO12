@@ -11,7 +11,7 @@ userRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
-    const users = await User.find({}).sort({ name: 1 });
+    const users = await User.find().sort({ name: 1 });
     res.send(users);
   })
 );
@@ -28,6 +28,7 @@ userRouter.get(
     const pageSize = query.pageSize || PAGE_SIZE;
 
     const users = await User.find()
+      .sort({ name: 1 })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countUsers = await User.countDocuments();

@@ -46,13 +46,27 @@ const reducer = (state, action) => {
       return { ...state, loadingDelete: false };
     case 'DELETE_RESET':
       return { ...state, loadingDelete: false, successDelete: false };
+    case 'UPDATE_REQUEST':
+      return { ...state, loadingUpdate: true };
+    case 'UPDATE_SUCCESS':
+      return { ...state, loadingUpdate: false };
+    case 'UPDATE_FAIL':
+      return { ...state, loadingUpdate: false };
+
     default:
       return state;
   }
 };
 export default function AccountUserScreen() {
   const [
-    { loading, error, invoicesTOT, loadingDelete, successDelete },
+    {
+      loading,
+      error,
+      invoicesTOT,
+      loadingDelete,
+      loadingUpdate,
+      successDelete,
+    },
     dispatch,
   ] = useReducer(reducer, {
     loading: true,
@@ -75,22 +89,20 @@ export default function AccountUserScreen() {
   const [invDat, setInvDat] = useState('');
 
   const params = useParams();
-  const { id: userId } = params;
+  const { id: suppliId } = params;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         dispatch({ type: 'TOTAL_FETCH_REQUEST' });
-        const { data } = await axios.get(`/api/invoices/ctaS/${userId} `, {
+        const { data } = await axios.get(`/api/invoices/ctaB/${suppliId} `, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
         dispatch({ type: 'TOTAL_FETCH_SUCCESS', payload: data });
-        let kiki = data?.filter((data) => data.user === userId);
-        const sortedList = kiki.sort((a, b) => (a.docDat > b.docDat ? -1 : 0));
-
+        //        let kiki = data?.filter((data) => data.user === userId);
+        const sortedList = data.sort((a, b) => (a.docDat > b.docDat ? -1 : 0));
         setInvoices(sortedList);
-        console.log(kiki);
-        // //       calculatotal(total);
+        console.log(data);
       } catch (err) {
         dispatch({
           type: 'TOTAL_FETCH_FAIL',
@@ -102,47 +114,104 @@ export default function AccountUserScreen() {
   }, []);
 
   useEffect(() => {
+    calculatotal();
+  }, [invoices]);
+
+  const calculatotal = async () => {
     let sum = 0;
     invoices.forEach((invoice) => {
       invoice.invoiceItems
-        ? (sum = sum - invoice.totalPrice)
-        : (sum = sum + invoice.totalPrice);
-      console.log(sum);
+        ? (sum = sum - invoice.totalBuy)
+        : (sum = sum + invoice.totalBuy);
     });
+
     setTotal(sum);
-  }, [total]);
+  };
 
   const handleShow = (invoice) => {
     //setInvoices(invoice);
     //setShow(true);
   };
 
-  const deleteHandler = async (invoice) => {
-    if (window.confirm('Are you sure to delete?')) {
-      try {
-        dispatch({ type: 'DELETE_REQUEST' });
-        await axios.delete(`/api/invoices/${invoice._id}`, {
-          headers: { Authorization: `Bearer ${userInfo.token}` },
-        });
-        toast.success('invoice deleted successfully');
-        dispatch({ type: 'DELETE_SUCCESS' });
-      } catch (err) {
-        toast.error(getError(error));
-        dispatch({
-          type: 'DELETE_FAIL',
-        });
+  const aplyReceipt = async () => {};
+
+  const payInvoice = async () => {};
+
+  const noDelInvoice = async () => {
+    if (
+      window.confirm(
+        'This Invoice have a Receipt, You Must delete the receipt Before'
+      )
+    ) {
+    }
+  };
+
+  const deleteInvoice = async (invoice) => {
+    if (invoice.recNum) {
+      noDelInvoice();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'UPDATE_REQUEST' });
+          await axios.put(
+            `/api/invoices/${invoice._id}/deleteinvoice`,
+            {
+              remNum: null,
+              invNum: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            }
+          );
+          dispatch({ type: 'UPDATE_SUCCESS' });
+          toast.success('Invoice deleted successfully');
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'UPDATE_FAIL',
+          });
+        }
+      }
+    }
+  };
+
+  const deleteReceipt = async (invoice) => {
+    if (invoice.recNum) {
+      noDelInvoice();
+    } else {
+      if (window.confirm('Are you sure to delete?')) {
+        try {
+          dispatch({ type: 'UPDATE_REQUEST' });
+          await axios.put(
+            `/api/invoices/${invoice._id}/deleteinvoice`,
+            {
+              remNum: null,
+              invNum: null,
+            },
+            {
+              headers: { Authorization: `Bearer ${userInfo.token}` },
+            }
+          );
+          dispatch({ type: 'UPDATE_SUCCESS' });
+          toast.success('Receipt Applied successfully');
+        } catch (err) {
+          toast.error(getError(error));
+          dispatch({
+            type: 'UPDATE_FAIL',
+          });
+        }
       }
     }
   };
 
   const createHandler = async () => {
-    navigate(`/admin/users`);
+    navigate(`/admin/suppliers`);
   };
 
   return (
     <div>
       <Helmet>
-        <title>Sale Invoices</title>
+        <title>Buy Invoices</title>
       </Helmet>
       <Row>
         <Col>
@@ -150,19 +219,13 @@ export default function AccountUserScreen() {
         </Col>
 
         <Col>
-          <h3>
-            {total}
-            Total: $
-          </h3>
-        </Col>
-        <Col>
           <SearchBox />
         </Col>
 
         <Col className="col text-end">
           <div>
             <Button type="button" onClick={createHandler}>
-              Select Other User
+              Select Other Supplier
             </Button>
           </div>
         </Col>
@@ -178,22 +241,33 @@ export default function AccountUserScreen() {
           <table className="table">
             <thead>
               <tr>
-                <th>INVOICE</th>
-                <th>INVOICE DATE</th>
-                <th>RECEIPT</th>
-                <th>RECEIPT DATE</th>
-                <th>TOTAL</th>
+                <th>DATE</th>
+                <th>DOCUMENT</th>
+                <th>NUMBER</th>
+                <th>ORDER N°</th>
+                <th>STATE</th>
+                <th>AMOUNT</th>
                 <th>ACTIONS</th>
+                <th>
+                  <h4>Account: ${total}</h4>
+                </th>
               </tr>
             </thead>
             <tbody>
               {invoices?.map((invoice) => (
                 <tr key={invoice._id}>
-                  <td>{invoice.invNum}</td>
-                  <td>{invoice.invDat}</td>
-                  <td>{invoice.recNum}</td>
-                  <td>{invoice.recDat}</td>
-                  <td>{invoice.totalPrice.toFixed(2)}</td>
+                  <td>{invoice.docDat.substring(0, 10)}</td>
+                  {invoice.invoiceItems ? <td>Invoice</td> : <td>Receipt</td>}
+                  {invoice.invoiceItems ? (
+                    <td>{invoice.invNum}</td>
+                  ) : (
+                    <td>{invoice.recNum}</td>
+                  )}
+
+                  {invoice.ordYes === 'Y' ? <td>{invoice._id}</td> : <td></td>}
+
+                  <td>{invoice.staOrd}</td>
+                  <td>{invoice.totalBuy.toFixed(2)}</td>
 
                   <td>
                     {invoice.invoiceItems ? (
@@ -261,8 +335,26 @@ export default function AccountUserScreen() {
                     {invoice.invoiceItems ? (
                       <Button
                         type="button"
+                        title="Pay Invoice"
+                        onClick={() => payInvoice(invoice)}
+                      >
+                        <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        title="Aply Invoice "
+                        onClick={() => aplyReceipt(invoice)}
+                      >
+                        <AiOutlineEdit className="text-blue-500 font-bold text-xl" />
+                      </Button>
+                    )}
+                    &nbsp;
+                    {invoice.invoiceItems ? (
+                      <Button
+                        type="button"
                         title="Delete Invoice"
-                        onClick={() => deleteHandler(invoice._id)}
+                        onClick={() => deleteInvoice(invoice)}
                         //disabled={invoice.invNum < 40}
                       >
                         <AiOutlineDelete className="text-red-500 font-bold text-xl" />
@@ -271,7 +363,7 @@ export default function AccountUserScreen() {
                       <Button
                         type="button"
                         title="Delete Receipt"
-                        onClick={() => deleteHandler(invoice._id)}
+                        onClick={() => deleteReceipt(invoice)}
                         //disabled={invoice.invNum < 40}
                       >
                         <AiOutlineDelete className="text-red-500 font-bold text-xl" />

@@ -69,6 +69,7 @@ stateOrdRouter.get(
     const pageSize = query.pageSize || PAGE_SIZE;
 
     const stateOrds = await StateOrd.find()
+      .sort({ name: 1 })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countStateOrds = await StateOrd.countDocuments();

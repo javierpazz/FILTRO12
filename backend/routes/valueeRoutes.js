@@ -69,6 +69,7 @@ valueeRouter.get(
     const pageSize = query.pageSize || PAGE_SIZE;
 
     const valuees = await Valuee.find()
+      .sort({ desVal: 1 })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countSuppliers = await Valuee.countDocuments();

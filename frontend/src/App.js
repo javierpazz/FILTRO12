@@ -33,6 +33,7 @@ import ProductListScreen from './screens/ProductListScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
 
 import AccountUserScreen from './screens/AccountUserScreen';
+import AccountSuppliScreen from './screens/AccountSuppliScreen';
 import InvoiceListScreen from './screens/InvoiceListScreen';
 import InvoiceBuyListScreen from './screens/InvoiceBuyListScreen';
 import ReceiptListScreen from './screens/ReceiptListScreen';
@@ -456,6 +457,14 @@ function App() {
                 element={
                   <AdminRoute>
                     <AccountUserScreen />
+                  </AdminRoute>
+                }
+              ></Route>
+              <Route
+                path="/admin/suppli/:id"
+                element={
+                  <AdminRoute>
+                    <AccountSuppliScreen />
                   </AdminRoute>
                 }
               ></Route>

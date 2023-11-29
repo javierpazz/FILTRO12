@@ -6,7 +6,7 @@ import { isAuth, isAdmin } from '../utils.js';
 const supplierRouter = express.Router();
 
 supplierRouter.get('/', async (req, res) => {
-  const suppliers = await Supplier.find();
+  const suppliers = await Supplier.find().sort({ name: 1 });
   res.send(suppliers);
 });
 
@@ -71,6 +71,7 @@ supplierRouter.get(
     const pageSize = query.pageSize || PAGE_SIZE;
 
     const suppliers = await Supplier.find()
+      .sort({ name: 1 })
       .skip(pageSize * (page - 1))
       .limit(pageSize);
     const countSuppliers = await Supplier.countDocuments();

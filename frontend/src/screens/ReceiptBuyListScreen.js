@@ -172,9 +172,7 @@ export default function ReceiptListScreen() {
           <h1>Buy Receipts</h1>
         </Col>
         <Col>
-          <h3>
-            Total: ${receiptsT?.reduce((a, c) => a + c.totalPrice * 1, 0)}
-          </h3>
+          <h3>Total: ${receiptsT?.reduce((a, c) => a + c.totalBuy * 1, 0)}</h3>
         </Col>
 
         <Col>
@@ -219,7 +217,7 @@ export default function ReceiptListScreen() {
                       : 'DELETED SUPPLIER'}
                   </td>
                   <td>{receipt.desval}</td>
-                  <td>{receipt.totalPrice.toFixed(2)}</td>
+                  <td>{receipt.totalBuy.toFixed(2)}</td>
 
                   <td>
                     <Button

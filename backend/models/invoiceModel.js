@@ -42,6 +42,7 @@ const invoiceSchema = new mongoose.Schema(
     shippingPrice: { type: Number },
     taxPrice: { type: Number },
     totalPrice: { type: Number },
+    totalBuy: { type: Number },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,

@@ -16,6 +16,7 @@ const receiptSchema = new mongoose.Schema(
     ],
     itemsPrice: { type: Number },
     totalPrice: { type: Number },
+    totalBuy: { type: Number },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,

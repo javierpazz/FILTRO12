@@ -18,7 +18,7 @@ const reducer = (state, action) => {
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        valuees: action.payload.valuees,
+        products: action.payload.products,
         page: action.payload.page,
         pages: action.payload.pages,
         loading: false,
@@ -30,23 +30,26 @@ const reducer = (state, action) => {
   }
 };
 
-export default function TableFormRec({
-  codVal,
-  setCodVal,
-  desval,
-  setDesval,
+export default function TableFormBuy({
+  codPro,
+  setCodPro,
+  desPro,
+  setDesPro,
   quantity,
   setQuantity,
-  amountval,
-  setAmountval,
+  price,
+  setPrice,
+  amount,
+  setAmount,
   list,
   setList,
   total,
   setTotal,
+  isPaying,
 }) {
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const {
-    receipt: { receiptItems },
+    invoice: { invoiceItems },
     userInfo,
   } = state;
 
@@ -67,37 +70,31 @@ export default function TableFormRec({
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [valuees, setValuees] = useState([]);
-  const [valueeR, setValueeR] = useState('');
-  const [numval, setNumval] = useState(' ');
+  const [productss, setProductss] = useState([]);
+  const [productR, setProductR] = useState('');
   const [stock, setStock] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`/api/valuees/`, {
+        const { data } = await axios.get(`/api/products/`, {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         });
-        setValuees(data);
+        setProductss(data);
         dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {}
     };
     fetchData();
   }, []);
 
+  // Calculate items amount function
   useEffect(() => {
-    if (numval === '') {
-      setNumval(' ');
-    }
-    setCodVal(codVal);
-  }, [numval, codVal, amountval]);
+    const calculateAmount = (amount) => {
+      setAmount(quantity * price);
+    };
 
-  // Calculate items amountval function
-  useEffect(() => {
-    const calculateAmount = (amountval) => {};
-
-    calculateAmount(amountval);
-  }, [codVal, amountval]);
+    calculateAmount(amount);
+  }, [codPro, amount, price, quantity, setAmount]);
 
   // Submit form function
   const handleSubmit = (e) => {
@@ -105,30 +102,42 @@ export default function TableFormRec({
     addToCartHandler();
   };
 
-  const addToCartHandler = async (itemVal) => {
-    if (codVal && amountval > 0) {
+  const addToCartHandler = async (itemInv) => {
+    if (codPro && quantity > 0) {
       ctxDispatch({
-        type: 'RECEIPT_ADD_ITEM',
-        payload: { ...itemVal, desval, amountval, numval },
+        type: 'INVOICE_ADD_ITEM',
+        payload: { ...itemInv, quantity, amount, price },
       });
     }
   };
 
-  const removeItemHandler = (itemVal) => {
-    ctxDispatch({ type: 'RECEIPT_REMOVE_ITEM', payload: itemVal });
+  const removeItemHandler = (itemInv) => {
+    ctxDispatch({ type: 'INVOICE_REMOVE_ITEM', payload: itemInv });
   };
 
   // Edit function
 
-  const searchValuee = (codVal) => {
-    const valueeR = valuees.find((row) => row._id === codVal);
-    setValueeR(valueeR);
-    setCodVal(valueeR._id);
-    setDesval(valueeR.desVal);
+  const searchProduct = (codPro) => {
+    const productRow = productss.find((row) => row._id === codPro);
+    setProductR(productRow);
+    setCodPro(productRow._id);
+    setDesPro(productRow.name);
+    setQuantity(1);
+    setPrice(productRow.price);
+    setAmount(productRow.price);
+    setStock(productRow.countInStock);
   };
 
+//   const stockControl = (e) => {
+//     if (e.target.value <= stock) {
+//       setQuantity(e.target.value);
+//     } else {
+//       toast.error('This Product does not have stock enough');
+//     }
+//   };
+
   const handleChange = (e) => {
-    searchValuee(e.target.value);
+    searchProduct(e.target.value);
   };
 
   return (
@@ -142,12 +151,13 @@ export default function TableFormRec({
               <Card.Body>
                 <Card.Title>
                   <Form.Group className="input" controlId="name">
-                    <Form.Label>Value Code</Form.Label>
+                    <Form.Label>Product Code</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Value Code"
-                      value={codVal}
-                      onChange={(e) => setCodVal(e.target.value)}
+                      placeholder="Product Code"
+                      value={codPro}
+                      onChange={(e) => setCodPro(e.target.value)}
+                      disabled={isPaying}
                       required
                     />
                   </Form.Group>
@@ -160,14 +170,15 @@ export default function TableFormRec({
                 <Card.Title>
                   <Card.Title>
                     <Form.Group className="input" controlId="name">
-                      <Form.Label>Valuee Description</Form.Label>
+                      <Form.Label>Product Description</Form.Label>
                       <Form.Select
                         className="input"
                         onClick={(e) => handleChange(e)}
+                        disabled={isPaying}
                       >
-                        {valuees.map((elementoP) => (
-                          <option key={elementoP._id} value={elementoP._id}>
-                            {elementoP.desVal}
+                        {productss.map((elementoP) => (
+                          <option key={elementoP.id} value={elementoP._id}>
+                            {elementoP.name}
                           </option>
                         ))}
                       </Form.Select>
@@ -176,16 +187,18 @@ export default function TableFormRec({
                 </Card.Title>
               </Card.Body>
             </Col>
-            <Col md={2}>
+
+            <Col md={1}>
               <Card.Body>
                 <Card.Title>
                   <Form.Group className="input" controlId="name">
-                    <Form.Label>Value Number</Form.Label>
+                    <Form.Label>Quantity</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Value Number"
-                      value={numval}
-                      onChange={(e) => setNumval(e.target.value)}
+                      placeholder="Quantity"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      disabled={isPaying}
                       required
                     />
                   </Form.Group>
@@ -196,15 +209,27 @@ export default function TableFormRec({
             <Col md={1}>
               <Card.Body>
                 <Card.Title>
-                  <Form.Group className="input" controlId="amount">
-                    <Form.Label>Amount</Form.Label>
+                  <Form.Group className="input" controlId="name">
+                    <Form.Label>Price</Form.Label>
                     <Form.Control
                       className="input"
-                      placeholder="Amount"
-                      value={amountval}
-                      onChange={(e) => setAmountval(e.target.value)}
+                      placeholder="Price"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      disabled={isPaying}
                       required
                     />
+                  </Form.Group>
+                </Card.Title>
+              </Card.Body>
+            </Col>
+
+            <Col md={1}>
+              <Card.Body>
+                <Card.Title>
+                  <Form.Group className="input">
+                    <Form.Label>Amount</Form.Label>
+                    <p>{amount}</p>
                   </Form.Group>
                 </Card.Title>
               </Card.Body>
@@ -215,9 +240,9 @@ export default function TableFormRec({
                 <Card.Title>
                   <Form.Group>
                     <Button
-                      onClick={() => addToCartHandler(valueeR)}
+                      onClick={() => addToCartHandler(productR)}
                       className="mt-3 mb-1 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-                      disabled={!codVal || !numval || !amountval}
+                      disabled={isPaying}
                     >
                       {isEditing ? 'Editing Row Item' : 'Add Table Item'}
                     </Button>
@@ -233,25 +258,28 @@ export default function TableFormRec({
       <table width="100%" className="mb-10">
         <thead>
           <tr className="bg-gray-100 p-1">
-            <td className="font-bold">Value Code</td>
-            <td className="font-bold">Value Description</td>
-            <td className="font-bold">Value Number</td>
+            <td className="font-bold">Product Code</td>
+            <td className="font-bold">Product Description</td>
+            <td className="font-bold">Quantity</td>
+            <td className="font-bold">Price</td>
             <td className="font-bold">Amount</td>
             <td className="font-bold">Options</td>
           </tr>
         </thead>
-        {receiptItems.map((itemVal) => (
-          <React.Fragment key={itemVal._id}>
+        {invoiceItems.map((itemInv) => (
+          <React.Fragment key={itemInv._id}>
             <tbody>
               <tr className="h-10">
-                <td>{itemVal._id}</td>
-                <td>{itemVal.desval}</td>
-                <td>{itemVal.numval}</td>
-                <td>{itemVal.amountval}</td>
+                <td>{itemInv._id}</td>
+                <td>{itemInv.name}</td>
+                <td>{itemInv.quantity}</td>
+                <td>{itemInv.price}</td>
+                <td className="amount">{itemInv.quantity * itemInv.price}</td>
                 <td>
                   <Button
                     className="mt-0 mb-0 bg-yellow-300 text-black py-1 px-1 rounded shadow border-2 border-yellow-300 hover:bg-transparent hover:text-blue-500 transition-all duration-300"
-                    onClick={() => removeItemHandler(itemVal)}
+                    onClick={() => removeItemHandler(itemInv)}
+                    disabled={isPaying}
                   >
                     <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                   </Button>
