@@ -42,6 +42,21 @@ const reducer = (state, action) => {
       };
     case 'VALUE_FETCH_FAIL':
       return { ...state, loadingVal: false, error: action.payload };
+//cr/
+//
+case 'TOTAL_FETCH_REC_REQUEST':
+  return { ...state, loading: true };
+case 'TOTAL_FETCH_REC_SUCCESS':
+  return {
+    ...state,
+    receiptss: action.payload,
+    loading: false,
+  };
+case 'TOTAL_FETCH_REC_FAIL':
+  return { ...state, loading: false, error: action.payload };
+
+//
+//cr/
 
     default:
       return state;
@@ -84,6 +99,7 @@ function AppOrd() {
   const [valueeR, setValueeR] = useState('');
   const [desVal, setDesVal] = useState('');
   const [numval, setNumval] = useState(0);
+  const [receiptss, setReceiptss] = useState([]);
   const [userss, setUserss] = useState([]);
   const [valuess, setValuess] = useState([]);
   const [codPro, setCodPro] = useState('');
@@ -113,6 +129,28 @@ function AppOrd() {
   const handlePrint = () => {
     window.print();
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        dispatch({ type: 'TOTAL_FETCH_REC_REQUEST' });
+        const { data } = await axios.get(`/api/receipts/S`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        dispatch({ type: 'TOTAL_FETCH_REC_SUCCESS', payload: data });
+        setReceiptss(data);
+      } catch (err) {
+        dispatch({
+          type: 'TOTAL_FETCH_REC_FAIL',
+          payload: getError(err),
+        });
+      }
+    };
+    fetchData();
+  }, []);
+  //
+  //cr/
+  
 
   useEffect(() => {
     const calculateAmountval = (amountval) => {
@@ -171,6 +209,24 @@ function AppOrd() {
     setDesval(valuesRow.desVal);
   };
 
+//cr/
+//
+const RecControl = (e) => {
+  
+  const oldRecipt = receiptss.filter((row) => row.recNum === Number(recNum) && row.user._id === codUse._id );
+  if (oldRecipt.length > 0) {
+      toast.error(`This N° ${(recNum)} Receipt Exist, use other Number Please!`);
+      setRecNum(e.target.value)
+    } else {
+      setRecNum(e.target.value)}
+    }
+
+//
+//cr/
+
+
+
+
   const handleValueChange = (e) => {
     searchValue(e.target.value);
   };
@@ -178,6 +234,19 @@ function AppOrd() {
   const placeCancelInvoiceHandler = async () => {};
 
   const placeInvoiceHandler = async () => {
+      //cr/
+      //
+      const oldRecipt = receiptss.filter((row) => row.recNum === Number(recNum) && row.user._id === codUse._id );
+      if (oldRecipt.length > 0) {
+          toast.error(`This N° ${(recNum)} Receipt Exist, use other Number Please!`);
+          return;
+          } else {
+      
+      //
+      //cr/
+      
+      
+      
     if (isPaying && (!recNum || !recDat || !desVal)) {
       unloadpayment();
     } else {
@@ -217,10 +286,11 @@ function AppOrd() {
           receiptHandler();
         }
         orderHandler();
-        setShowInvoice(true);
+      //  setShowInvoice(true);
         //      handlePrint();
       }
     }
+  }
   };
 
   /////////////////////////////////////////////
@@ -275,7 +345,7 @@ function AppOrd() {
       dispatch({ type: 'CREATE_SUCCESS' });
       localStorage.removeItem('receiptItems');
 //      navigate(`/order/${order._id}`);
-    } catch (err) {
+} catch (err) {
       dispatch({ type: 'CREATE_FAIL' });
       toast.error(getError(err));
     }
@@ -511,7 +581,8 @@ function AppOrd() {
                               className="input"
                               placeholder="Receipt N°"
                               value={recNum}
-                              onChange={(e) => setRecNum(e.target.value)}
+                              onChange={(e) => RecControl(e)}
+                                // onChange={(e) => setRecNum(e.target.value)}
                               disabled={!isPaying}
                               required
                             />
