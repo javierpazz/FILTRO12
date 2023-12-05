@@ -52,7 +52,7 @@ productRouter.put(
 productRouter.put(
   '/downstock/:id',
   isAuth,
-  isAdmin,
+  // isAdmin,
   expressAsyncHandler(async (req, res) => {
     const productId = req.params.id;
     const product = await Product.findById(productId);

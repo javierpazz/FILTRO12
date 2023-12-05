@@ -152,6 +152,36 @@ export default function InvoiceListScreen() {
     setShow(true);
   };
 
+//do
+const controlStockHandler = async (invoice) => {
+  invoice.invoiceItems.map((item) => stockHandler({ item }));
+};
+
+const stockHandler = async (item) => {
+try {
+  dispatch({ type: 'CREATE_REQUEST' });
+  await axios.put(
+    `/api/products/upstock/${item.item._id}`,
+    {
+      quantitys: item.item.quantity,
+    },
+    {
+      headers: {
+        authorization: `Bearer ${userInfo.token}`,
+      },
+    }
+  );
+  dispatch({ type: 'CREATE_SUCCESS' });
+} catch (err) {
+  dispatch({ type: 'CREATE_FAIL' });
+  toast.error(getError(err));
+}
+};
+
+//do
+
+
+
   const noDelInvoice = async () => {
     if (
       window.confirm(
@@ -160,33 +190,56 @@ export default function InvoiceListScreen() {
     ) {
     }
   };
+  
+
 
   const deleteHandler = async (invoice) => {
     if (invoice.recNum) {
       noDelInvoice();
     } else {
-      if (window.confirm('Are you sure to delete?')) {
+      if (!invoice.ordYes) {
+        //do
+        controlStockHandler(invoice);
         try {
-          dispatch({ type: 'UPDATE_REQUEST' });
-          await axios.put(
-            `/api/invoices/${invoice._id}/deleteinvoice`,
-            {
-              remNum: null,
-              invNum: null,
-            },
-            {
-              headers: { Authorization: `Bearer ${userInfo.token}` },
-            }
-          );
-          dispatch({ type: 'UPDATE_SUCCESS' });
-          toast.success('Invoice deleted successfully');
+          dispatch({ type: 'DELETE_REQUEST' });
+          await axios.delete(`/api/orders/${invoice._id}`, {
+            headers: { Authorization: `Bearer ${userInfo.token}` },
+          });
+          toast.success('order deleted successfully');
+          dispatch({ type: 'DELETE_SUCCESS' });
         } catch (err) {
           toast.error(getError(error));
           dispatch({
-            type: 'UPDATE_FAIL',
+            type: 'DELETE_FAIL',
           });
         }
+
+        //do
       }
+      else {
+            if (window.confirm('Are you sure to delete?')) {
+              try {
+                dispatch({ type: 'UPDATE_REQUEST' });
+                await axios.put(
+                  `/api/invoices/${invoice._id}/deleteinvoice`,
+                  {
+                    remNum: null,
+                    invNum: null,
+                  },
+                  {
+                    headers: { Authorization: `Bearer ${userInfo.token}` },
+                  }
+                );
+                dispatch({ type: 'UPDATE_SUCCESS' });
+                toast.success('Invoice deleted successfully');
+              } catch (err) {
+                toast.error(getError(error));
+                dispatch({
+                  type: 'UPDATE_FAIL',
+                });
+              }
+            }
+          }
     }
   };
 

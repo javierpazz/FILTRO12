@@ -89,15 +89,46 @@ export default function OrderListScreen() {
   }, [page, userInfo, successDelete, show]);
 
   const noDelOrder = async () => {
-    if (window.confirm('This Order Have an Invoice Or Remit')) {
+    if (window.confirm('This Order Have an Invoice Or Remit, You Must delete this Before')) {
     }
   };
+
+
+//do
+const controlStockHandler = async (order) => {
+  order.invoiceItems.map((item) => stockHandler({ item }));
+};
+
+const stockHandler = async (item) => {
+try {
+  dispatch({ type: 'CREATE_REQUEST' });
+  await axios.put(
+    `/api/products/upstock/${item.item._id}`,
+    {
+      quantitys: item.item.quantity,
+    },
+    {
+      headers: {
+        authorization: `Bearer ${userInfo.token}`,
+      },
+    }
+  );
+  dispatch({ type: 'CREATE_SUCCESS' });
+} catch (err) {
+  dispatch({ type: 'CREATE_FAIL' });
+  toast.error(getError(err));
+}
+};
+
+//do
+
 
   const deleteHandler = async (order) => {
     if (order.remNum || order.invNum) {
       noDelOrder();
     } else {
       if (window.confirm('Are you sure to delete?')) {
+        controlStockHandler(order);
         try {
           dispatch({ type: 'DELETE_REQUEST' });
           await axios.delete(`/api/orders/${order._id}`, {

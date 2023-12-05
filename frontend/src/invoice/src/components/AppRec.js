@@ -498,7 +498,7 @@ if (oldRecipt.length > 0) {
               trigger={() => <Button type="button">Print / Download</Button>}
               content={() => componentRef.current}
             />
-            <Button onClick={() => clearitems()}>New Invoice</Button>
+            <Button onClick={() => clearitems()}>New Receipt</Button>
 
             {/* receipt Preview */}
 

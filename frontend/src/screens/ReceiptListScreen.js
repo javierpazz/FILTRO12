@@ -136,10 +136,41 @@ export default function ReceiptListScreen() {
     setShow(true);
   };
 
+//dr
+
+const unapplyReceipt = async (invNum) => {
+  try {
+    //          dispatch({ type: 'UPDATE_REQUEST' });
+    await axios.put(
+      `/api/invoices/${invNum}/unapplyrec`,
+      // {
+      //   recNum: recNum,
+      //   recDat: recDat,
+      // },
+      {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      }
+    );
+    //          dispatch({type: 'UPDATE_SUCCESS' });
+    toast.success('Receipt Unapplied successfully');
+    //          navigate('/admin/products');
+  } catch (err) {
+    toast.error(getError(err));
+    //          dispatch({ type: 'UPDATE_FAIL' });
+  }
+};
+    // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
+//dr
+
+
+
   const deleteReceipt = async (receipt) => {
     if (window.confirm('Are you sure to delete?')) {
       // buscar todas loock at the invoices that have a receipt and modify de numRec by null
-
+//dr
+      unapplyReceipt(receipt.recNum);
+    // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
+//dr
       try {
         dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/receipts/${receipt._id}`, {

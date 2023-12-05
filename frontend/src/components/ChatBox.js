@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import socketIOClient from "socket.io-client";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -7,6 +7,7 @@ import Col from "react-bootstrap/Col";
 import ListGroup from "react-bootstrap/ListGroup";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
+import { Store } from "../Store";
 
 const ENDPOINT =
   window.location.host.indexOf("localhost") >= 0
@@ -15,8 +16,13 @@ const ENDPOINT =
 
 export default function ChatBox() {
   const uiMessagesRef = useRef(null);
+//ch
+const { state } = useContext(Store);
+const { userInfo } = state;
 
-  const [userName, setUserName] = useState("");
+//ch
+
+  const [userName, setUserName] = useState(userInfo.name);
   const [messages, setMessages] = useState([
     { from: "System", body: "Hello there, Please ask your question." },
   ]);

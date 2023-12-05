@@ -408,6 +408,26 @@ invoiceRouter.put(
   })
 );
 
+//di
+invoiceRouter.put(
+  '/:id/unapplyrec',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    const invoice = await Invoice.find({recNum: req.params.id });
+    //    console.log(req.body.recNum);
+    if (invoice) {
+      invoice.recNum = "";
+      invoice.recDat = "";
+      await invoice.save();
+      res.send({ message: 'Receipt Unapplied' });
+    } else {
+      res.status(404).send({ message: 'Invoice Not Found' });
+    }
+  })
+);
+
+//di
+
 invoiceRouter.put(
   '/:id/applyrec',
   isAuth,
