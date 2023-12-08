@@ -138,7 +138,47 @@ export default function ReceiptListScreen() {
     setShow(true);
   };
 
-  const deleteHandler = async (receipt) => {
+
+  
+//dr
+
+
+const unapplyReceipt = async (receipt) => {
+  try {
+    //          dispatch({ type: 'UPDATE_REQUEST' });
+    await axios.put(
+      `/api/invoices/${receipt.recNum}/unapplyrecB`,
+      {
+        recNum: receipt.recNum,
+        supplier: receipt.supplier._id,
+      },
+      {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      });    
+    //          dispatch({type: 'UPDATE_SUCCESS' });
+    // toast.success('Receipt Unapplied successfully');
+    //          navigate('/admin/products');
+  } catch (err) {
+    toast.error(getError(err));
+    //          dispatch({ type: 'UPDATE_FAIL' });
+  }
+};
+    // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
+//dr
+const prodeleteReceipt = (receipt) => {
+  if (window.confirm('Are you sure to delete?')) {
+      deleteReceipt(receipt);
+      //dr
+      unapplyReceipt(receipt);
+      // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
+      //dr
+
+    }
+  };
+
+
+
+  const deleteReceipt = async (receipt) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
         dispatch({ type: 'DELETE_REQUEST' });
@@ -251,7 +291,7 @@ export default function ReceiptListScreen() {
                     <Button
                       type="button"
                       title="Delete"
-                      onClick={() => deleteHandler(receipt)}
+                      onClick={() => prodeleteReceipt(receipt)}
                     >
                       <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>

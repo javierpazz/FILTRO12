@@ -136,8 +136,38 @@ export default function InvoiceBuyListScreen() {
     setShow(true);
   };
 
+//do
+const controlStockHandler = async (invoice) => {
+  invoice.invoiceItems.map((item) => stockHandler({ item }));
+};
+
+const stockHandler = async (item) => {
+try {
+  dispatch({ type: 'CREATE_REQUEST' });
+  await axios.put(
+    `/api/products/downstock/${item.item._id}`,
+    {
+      quantitys: item.item.quantity,
+    },
+    {
+      headers: {
+        authorization: `Bearer ${userInfo.token}`,
+      },
+    }
+  );
+  dispatch({ type: 'CREATE_SUCCESS' });
+} catch (err) {
+  dispatch({ type: 'CREATE_FAIL' });
+  toast.error(getError(err));
+}
+};
+
+//do
+
+
   const deleteHandler = async (invoice) => {
     if (window.confirm('Are you sure to delete?')) {
+      controlStockHandler(invoice);
       try {
         dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/invoices/${invoice._id}`, {

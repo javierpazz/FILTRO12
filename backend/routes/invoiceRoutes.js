@@ -410,21 +410,43 @@ invoiceRouter.put(
 
 //di
 invoiceRouter.put(
-  '/:id/unapplyrec',
+  '/:id/unapplyrecS',
   isAuth,
   expressAsyncHandler(async (req, res) => {
-    const invoice = await Invoice.find({recNum: req.params.id });
-    //    console.log(req.body.recNum);
-    if (invoice) {
-      invoice.recNum = "";
-      invoice.recDat = "";
-      await invoice.save();
-      res.send({ message: 'Receipt Unapplied' });
-    } else {
-      res.status(404).send({ message: 'Invoice Not Found' });
-    }
+    await Invoice.updateMany({ recNum: req.body.recNum, user: req.body.user }, { $set: { recNum: null }}) 
+    
+    // const invoice = await Invoice.find({recNum: req.params.id });
+    // //    console.log(req.body.recNum);
+    // if (invoice) {
+    //   invoice.recNum = "";
+    //   invoice.recDat = "";
+      // await invoice.save();
+      // res.send({ message: 'Receipt Unapplied' });
+    // } else {
+      // res.status(404).send({ message: 'Invoice Not Found' });
+    // }
   })
 );
+
+invoiceRouter.put(
+  '/:id/unapplyrecB',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    await Invoice.updateMany({ recNum: req.body.recNum, supplier: req.body.supplier }, { $set: { recNum: null }}) 
+    
+    // const invoice = await Invoice.find({recNum: req.params.id });
+    // //    console.log(req.body.recNum);
+    // if (invoice) {
+    //   invoice.recNum = "";
+    //   invoice.recDat = "";
+      // await invoice.save();
+      // res.send({ message: 'Receipt Unapplied' });
+    // } else {
+      // res.status(404).send({ message: 'Invoice Not Found' });
+    // }
+  })
+);
+
 
 //di
 

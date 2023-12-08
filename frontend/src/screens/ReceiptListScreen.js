@@ -138,21 +138,21 @@ export default function ReceiptListScreen() {
 
 //dr
 
-const unapplyReceipt = async (invNum) => {
+
+const unapplyReceipt = async (receipt) => {
   try {
     //          dispatch({ type: 'UPDATE_REQUEST' });
     await axios.put(
-      `/api/invoices/${invNum}/unapplyrec`,
-      // {
-      //   recNum: recNum,
-      //   recDat: recDat,
-      // },
+      `/api/invoices/${receipt.recNum}/unapplyrecS`,
+      {
+        recNum: receipt.recNum,
+        user: receipt.user._id,
+      },
       {
         headers: { Authorization: `Bearer ${userInfo.token}` },
-      }
-    );
+      });    
     //          dispatch({type: 'UPDATE_SUCCESS' });
-    toast.success('Receipt Unapplied successfully');
+    // toast.success('Receipt Unapplied successfully');
     //          navigate('/admin/products');
   } catch (err) {
     toast.error(getError(err));
@@ -162,15 +162,19 @@ const unapplyReceipt = async (invNum) => {
     // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
 //dr
 
+const prodeleteReceipt = (receipt) => {
+  if (window.confirm('Are you sure to delete?')) {
+      deleteReceipt(receipt);
+      //dr
+      unapplyReceipt(receipt);
+      // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
+      //dr
 
+    }
+  };
 
   const deleteReceipt = async (receipt) => {
-    if (window.confirm('Are you sure to delete?')) {
       // buscar todas loock at the invoices that have a receipt and modify de numRec by null
-//dr
-      unapplyReceipt(receipt.recNum);
-    // buscar todas loock at the invoices that have a receipt and modify de numRec by nul
-//dr
       try {
         dispatch({ type: 'DELETE_REQUEST' });
         await axios.delete(`/api/receipts/${receipt._id}`, {
@@ -184,7 +188,6 @@ const unapplyReceipt = async (invNum) => {
           type: 'DELETE_FAIL',
         });
       }
-    }
   };
 
   const createHandler = async () => {
@@ -280,7 +283,7 @@ const unapplyReceipt = async (invNum) => {
                     <Button
                       type="button"
                       title="Delete"
-                      onClick={() => deleteReceipt(receipt)}
+                      onClick={() => prodeleteReceipt(receipt)}
                     >
                       <AiOutlineDelete className="text-red-500 font-bold text-xl" />
                     </Button>
